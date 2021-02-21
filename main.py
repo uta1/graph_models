@@ -8,7 +8,7 @@ from PIL import Image
 from PIL import ImageFont, ImageDraw
 from glob import glob
 
-PROGRAMMS = ['binarize', 'main']
+MODULES = ['binarize', 'main']
 MODE = 'samples'
 LABELS = MODE + '.json'
 ARCHIVENAME = 'examples.tar.gz'
@@ -125,25 +125,19 @@ def binarize(image_name, target_size=(512,512)):
 
     th, im_gray_th_otsu = cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU)
     
-    trg6 = cv2.resize(im_gray, target_size, interpolation = cv2.INTER_NEAREST)
+    trg6 = cv2.resize(im_gray_th_otsu, target_size, interpolation = cv2.INTER_NEAREST)
     
     cv2.imwrite(BINFOLDER + 'trg_' + image_name + '.tiff', trg6)
 
 if __name__ == '__main__':
-    if 'download' in PROGRAMMS:
+    if 'download' in MODULES:
         download()
         extract()
         get_samples()
         print('downloading finished')
-    if 'binarize' in PROGRAMMS:
+    if 'binarize' in MODULES:
         for image in get_file_names(FOLDER):
             binarize(image)
-    if 'main' in PROGRAMMS:
+    if 'main' in MODULES:
         process()
-
-  
-#get_samples()
-
-#j = unet(input_size=(512,512,1))
-#print(j)
 
