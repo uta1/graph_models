@@ -119,7 +119,7 @@ import cv2
 import os, time
 
 
-def get_main_rects(contours):
+def get_rects_by_contours(contours):
     rects = [cv2.boundingRect(contour) for contour in contours]
     return [rect for rect in rects if rect[-2] >= MIN_OBJECT_WIDTH and rect[-1] >= MIN_OBJECT_HEIGHT]
 
@@ -134,16 +134,18 @@ def create_trg_image(image_name, target_size=(512, 512), print_bboxes=False):
 
     th, im_gray_th_otsu = cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU)
 
-    res_image = cv2.resize(im_gray_th_otsu, target_size, interpolation = cv2.INTER_NEAREST)
+    bined_resized = cv2.resize(im_gray_th_otsu, target_size, interpolation = cv2.INTER_NEAREST)
 
     if print_bboxes:
-        contours, hier = cv2.findContours(res_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hier = cv2.findContours(bined_resized, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         res_image = cv2.resize(original, target_size, interpolation = cv2.INTER_NEAREST)
-        rects = get_main_rects(contours)
+        rects = get_rects_by_contours(contours)
 
         for x, y, w, h in rects:
             cv2.rectangle(res_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    else:
+        res_image = bined_resized
 
     cv2.imwrite(BINFOLDER + 'trg_' + image_name + '.tiff', res_image)
 
