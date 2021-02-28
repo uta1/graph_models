@@ -6,7 +6,6 @@ import numpy as np
 from os import path
 from PIL import Image
 from PIL import ImageFont, ImageDraw
-from glob import glob
 
 MODULES = ['create_trg_image']
 MODE = 'samples'
@@ -42,11 +41,9 @@ def get_samples():
         images[ann['image_id']]['annotations'].append(ann)
     return images
 
-import numpy as np 
 import os
 import skimage.io as io
 import skimage.transform as trans
-import numpy as np
 from keras.models import *
 from keras.layers import *
 from keras.optimizers import *
