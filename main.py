@@ -150,11 +150,12 @@ def create_trg_image(image_name, target_size=(512, 512), print_bboxes=True):
         rects = get_rects_by_contours(contours)
 
         for x, y, w, h in rects:
-            cv2.rectangle(res_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.rectangle(res_image, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
     else:
         res_image = bined_resized
 
-    cv2.imwrite(BINFOLDER + 'trg_' + image_name + '.tiff', res_image)
+    filename = BINFOLDER + 'trg_' + image_name + '.tiff'
+    cv2.imwrite(filename, res_image)
     return res_image
 
 
