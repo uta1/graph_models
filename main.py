@@ -3,7 +3,7 @@ import requests
 import tarfile
 import json
 import numpy as np
-from os import path
+from os import path 
 from PIL import Image
 from PIL import ImageFont, ImageDraw
 from glob import glob
