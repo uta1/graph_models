@@ -126,7 +126,7 @@ def get_rects_by_contours(contours):
 
 def resize(orig, target_size):
     if target_size:
-        return cv2.resize(orig, target_size, interpolation = cv2.INTER_NEAREST)
+        return cv2.resize(orig, target_size, interpolation=cv2.INTER_NEAREST)
     return orig
 
 
