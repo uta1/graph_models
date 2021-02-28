@@ -149,6 +149,7 @@ def create_trg_image(image_name, target_size=(512, 512), print_bboxes=False):
 
     cv2.imwrite(BINFOLDER + 'trg_' + image_name + '.tiff', res_image)
 
+
 if __name__ == '__main__':
     if 'download' in MODULES:
         download()
