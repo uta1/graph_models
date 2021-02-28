@@ -136,7 +136,7 @@ def resize(orig, target_size):
     return orig
 
 
-def create_trg_image(image_name, target_size=(512, 512), print_bboxes=True):
+def create_trg_image(image_name, target_size=(512, 512), print_bboxes=False):
     if not image_name.startswith('PMC'):
         return
 
@@ -144,26 +144,25 @@ def create_trg_image(image_name, target_size=(512, 512), print_bboxes=True):
 
     im_gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
 
-    th, im_gray_th_otsu = cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU)
-
-    bined_resized = resize(im_gray_th_otsu, target_size)
+    th, bined = cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU)
 
     if print_bboxes:
-        contours, hier = cv2.findContours(bined_resized, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-        res_image = resize(original, target_size)
+        contours, hier = cv2.findContours(bined, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         rects = get_rects_by_contours(contours)
         merge_small_rects(rects)
 
+        res_not_resized = original
         for x, y, w, h in rects:
-            cv2.rectangle(res_image, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
+            cv2.rectangle(res_not_resized, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
     else:
-        res_image = bined_resized
+        res_not_resized = bined
+
+    res = resize(res_not_resized, target_size)
 
     filename = BINFOLDER + 'trg_' + image_name + '.tiff'
-    cv2.imwrite(filename, res_image)
-    return res_image
+    cv2.imwrite(filename, res)
+    return res
 
 
 if __name__ == '__main__':
