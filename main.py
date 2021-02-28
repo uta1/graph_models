@@ -12,7 +12,7 @@ MODULES = ['create_trg_image']
 MODE = 'samples'
 LABELS = MODE + '.json'
 ARCHIVENAME = 'examples.tar.gz'
-FOLDER = 'examples/'
+FOLDER = '../examples/'
 BINFOLDER = FOLDER[:-1] + 'bin/'
 URL = 'https://dax-cdn.cdn.appdomain.cloud/dax-publaynet/1.0.0/' + ARCHIVENAME
 MIN_OBJECT_WIDTH = 4
@@ -119,12 +119,24 @@ import cv2
 import os, time
 
 
-def get_main_rects(contours):
+def get_rects_by_contours(contours):
     rects = [cv2.boundingRect(contour) for contour in contours]
     return [rect for rect in rects if rect[-2] >= MIN_OBJECT_WIDTH and rect[-1] >= MIN_OBJECT_HEIGHT]
 
 
-def create_trg_image(image_name, target_size=(512, 512), print_bboxes=False):
+# TODO: write this
+def merge_small_rects(rects):
+    rects.pop(0)
+    rects.sort()
+
+
+def resize(orig, target_size):
+    if target_size:
+        return cv2.resize(orig, target_size, interpolation=cv2.INTER_NEAREST)
+    return orig
+
+
+def create_trg_image(image_name, target_size=(512, 512), print_bboxes=True):
     if not image_name.startswith('PMC'):
         return
 
@@ -134,18 +146,25 @@ def create_trg_image(image_name, target_size=(512, 512), print_bboxes=False):
 
     th, im_gray_th_otsu = cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU)
 
-    res_image = cv2.resize(im_gray_th_otsu, target_size, interpolation = cv2.INTER_NEAREST)
+    bined_resized = resize(im_gray_th_otsu, target_size)
 
     if print_bboxes:
-        contours, hier = cv2.findContours(res_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hier = cv2.findContours(bined_resized, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        res_image = cv2.resize(original, target_size, interpolation = cv2.INTER_NEAREST)
-        rects = get_main_rects(contours)
+        res_image = resize(original, target_size)
+
+        rects = get_rects_by_contours(contours)
+        merge_small_rects(rects)
 
         for x, y, w, h in rects:
-            cv2.rectangle(res_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.rectangle(res_image, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
+    else:
+        res_image = bined_resized
 
-    cv2.imwrite(BINFOLDER + 'trg_' + image_name + '.tiff', res_image)
+    filename = BINFOLDER + 'trg_' + image_name + '.tiff'
+    cv2.imwrite(filename, res_image)
+    return res_image
+
 
 if __name__ == '__main__':
     if 'download' in MODULES:
@@ -155,7 +174,7 @@ if __name__ == '__main__':
         print('downloading finished')
     if 'create_trg_image' in MODULES:
         for image in get_file_names(FOLDER):
-            create_trg_image(image)
+            create_trg_image(image, target_size=None)
     if 'main' in MODULES:
         process()
 
