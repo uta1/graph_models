@@ -126,7 +126,6 @@ def get_rects_by_contours(contours):
 
 # TODO: write this
 def merge_small_rects(rects):
-    rects.pop(0)
     rects.sort()
 
 
@@ -136,7 +135,7 @@ def resize(orig, target_size):
     return orig
 
 
-def create_trg_image(image_name, target_size=(512, 512), print_bboxes=False):
+def create_trg_image(image_name, target_size=(512, 512), print_bboxes=True):
     if not image_name.startswith('PMC'):
         return
 
@@ -144,10 +143,13 @@ def create_trg_image(image_name, target_size=(512, 512), print_bboxes=False):
 
     im_gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
 
-    th, bined = cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU)
+    th, bined = cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
 
     if print_bboxes:
-        contours, hier = cv2.findContours(bined, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 1))
+        dilation = cv2.dilate(bined, rect_kernel, iterations=1)
+
+        contours, hier = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
         rects = get_rects_by_contours(contours)
         merge_small_rects(rects)
