@@ -124,6 +124,7 @@ def get_rects_by_contours(contours):
     return [rect for rect in rects if rect[-2] >= MIN_OBJECT_WIDTH and rect[-1] >= MIN_OBJECT_HEIGHT]
 
 
+# TODO: write this
 def merge_small_rects(rects):
     rects.pop(0)
     rects.sort()
