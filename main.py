@@ -141,7 +141,7 @@ def create_trg_image(image_name, target_size=(512, 512), print_bboxes=True):
     th, bined = cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
 
     if print_bboxes:
-        rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 1))
+        rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 6))
         dilation = cv2.dilate(bined, rect_kernel, iterations=1)
 
         contours, hier = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
