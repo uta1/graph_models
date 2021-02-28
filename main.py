@@ -17,6 +17,7 @@ BINFOLDER = FOLDER[:-1] + 'bin/'
 URL = 'https://dax-cdn.cdn.appdomain.cloud/dax-publaynet/1.0.0/' + ARCHIVENAME
 MIN_OBJECT_WIDTH = 4
 MIN_OBJECT_HEIGHT = 4
+RECTS_DILATION = (7, 6)
 
 def get_file_names(folder):
     for images_info in os.walk(folder):
@@ -141,7 +142,7 @@ def create_trg_image(image_name, target_size=(512, 512), print_bboxes=True):
     th, bined = cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
 
     if print_bboxes:
-        rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 6))
+        rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, RECTS_DILATION)
         dilation = cv2.dilate(bined, rect_kernel, iterations=1)
 
         contours, hier = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
