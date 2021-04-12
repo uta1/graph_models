@@ -1,11 +1,11 @@
-MODULES = ['create_trg_image']
+MODULES = ['download', 'create_trg_image', 'main']
 MODE = 'samples'
 LABELS = MODE + '.json'
-ARCHIVENAME = 'examples.tar.gz'
-TARFOLDER = 'examples/'
-FOLDER = '../examples/'
-BINFOLDER = FOLDER[:-1] + 'bin/'
-URL = 'https://dax-cdn.cdn.appdomain.cloud/dax-publaynet/1.0.0/' + ARCHIVENAME
+
+DATASETFOLDER = '../trg/'
+FOLDER = DATASETFOLDER + 'examples/'
+BINFOLDER = DATASETFOLDER + 'examplesbin/'
+
 MIN_OBJECT_WIDTH = 4
 MIN_OBJECT_HEIGHT = 4
 RECTS_DILATION = (7, 6)
