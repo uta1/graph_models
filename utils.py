@@ -12,6 +12,7 @@ def create_folder_if_not_exists(folder):
     except:
         os.mkdir(folder)
 
+
 def create_path(path):
     if path[-1] == '/':
         path = path[:-1]
