@@ -10,6 +10,8 @@ def extract():
     tar = tarfile.open(ARCHIVENAME)
     tar.extractall()
     tar.close()
+    os.system('rm ' + ARCHIVENAME)
+    os.system('mv ' + TARFOLDER + ' ' + FOLDER)
     
 def get_samples():
     with open(FOLDER + LABELS, 'r') as fp:
