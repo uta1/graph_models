@@ -14,26 +14,49 @@ def resize(orig, target_size):
     return orig
 
 
-def resize_rect(coef_width, coef_height, rect):
+def floor(rect):
     return [
-        math.floor(rect[0] * coef_width),
-        math.floor(rect[1] * coef_height),
-        math.floor(rect[2] * coef_width),
-        math.floor(rect[3] * coef_height),
+        math.floor(elem)
+        for elem in rect
     ]
 
 
-def resize_rects(target_size, orig_size, rects):
+def resize_rect(coef_width, coef_height, rect):
+    return floor(
+        [
+            rect[0] * coef_width,
+            rect[1] * coef_height,
+            rect[2] * coef_width,
+            rect[3] * coef_height,
+        ]
+    )
+
+
+def resize_rects(target_size, orig_size, rects, force_floor=False):
     if not target_size:
-        return rects
-    print(target_size, orig_size)
+        return [floor(rect) for rect in rects] if force_floor else rects
 
     coef_width = float(target_size[1]) / orig_size[1]
     coef_height = float(target_size[0]) / orig_size[0]
     return [resize_rect(coef_width, coef_height, rect) for rect in rects]
 
 
-def create_trg_image(image_name, target_size=(512, 512), binarize=True, print_bboxes=False):
+def extract_rects_from_label(image_name, cached_labels, image_id_by_file_name):
+    return [
+        ann['bbox']
+        for ann in cached_labels[image_id_by_file_name[image_name]]['annotations']
+    ]
+
+
+# plot_bboxes = [None | 'predict' | 'labels']
+def create_trg_image(
+    image_name,
+    cached_labels,
+    image_id_by_file_name,
+    target_size=(512, 512),
+    binarize=True,
+    plot_bboxes=None
+):
     if not image_name.startswith('PMC'):
         return
 
@@ -59,10 +82,19 @@ def create_trg_image(image_name, target_size=(512, 512), binarize=True, print_bb
         fp.write(label)
 
     res = resize(bined if binarize else original, target_size)
-    if print_bboxes:
+    if plot_bboxes:
         if binarize:
             res = np.tile(res[..., None], 3)
-        for x, y, w, h in resized_rects:
+        if plot_bboxes == 'labels':
+            rects_to_plot = resize_rects(
+                target_size,
+                orig_size,
+                extract_rects_from_label(image_name, cached_labels, image_id_by_file_name),
+                force_floor=True
+            )
+        else:
+            rects_to_plot = resized_rects
+        for x, y, w, h in rects_to_plot:
             cv2.rectangle(res, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
     filename = BINFOLDER + filename_template + '.tiff'
     cv2.imwrite(filename, res)
@@ -72,8 +104,20 @@ def create_trg_image(image_name, target_size=(512, 512), binarize=True, print_bb
 
 
 def create_trg_images():
+    target_size = (512, 512)
+    binarize = True
+    plot_bboxes = None
+
     create_path(BINFOLDER)
     create_path(LABELSFOLDER)
+    cached_labels, image_id_by_file_name = get_labels_indices() if plot_bboxes == 'labels' else (None, None)
     for image in get_file_names(FOLDER):
-        create_trg_image(image, target_size=(512, 512), binarize=True, print_bboxes=False)
+        create_trg_image(
+            image,
+            cached_labels,
+            image_id_by_file_name,
+            target_size=target_size,
+            binarize=binarize,
+            plot_bboxes=plot_bboxes
+        )
 
