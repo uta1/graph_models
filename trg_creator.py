@@ -107,10 +107,15 @@ def create_trg_images():
     target_size = (512, 512)
     binarize = True
     plot_bboxes = None
+    force_cache_checking = True
 
     create_path(BINFOLDER)
     create_path(LABELSFOLDER)
-    cached_labels, image_id_by_file_name = get_labels_indices() if plot_bboxes == 'labels' else (None, None)
+
+    cached_labels, image_id_by_file_name = (None, None)
+    if plot_bboxes == 'labels' or force_cache_checking:
+        cached_labels, image_id_by_file_name = cache_and_get_indices()
+
     for image in get_file_names(FOLDER):
         create_trg_image(
             image,
