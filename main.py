@@ -53,8 +53,14 @@ def create_trg_image(image_name, target_size=(512, 512), print_bboxes=True):
 
     filename = BINFOLDER + 'trg_' + image_name + '.tiff'
     cv2.imwrite(filename, res)
-    print(res.shape)
+    print(res.shape, filename)
     return res
+
+
+def create_trg_images():
+    create_folder_if_not_exists(BINFOLDER)
+    for image in get_file_names(FOLDER):
+        create_trg_image(image, target_size=(512, 512), print_bboxes=False)
 
 
 if __name__ == '__main__':
@@ -62,10 +68,10 @@ if __name__ == '__main__':
         download()
         extract()
         get_samples()
-        print('downloading finished')
+
     if 'create_trg_image' in MODULES:
-        for image in get_file_names(FOLDER):
-            create_trg_image(image, target_size=(512, 512), print_bboxes=False)
+        create_trg_images()
+
     if 'main' in MODULES:
         process()
 
