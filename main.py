@@ -19,7 +19,6 @@ if __name__ == '__main__':
     if 'download' in MODULES:
         download()
         extract()
-        get_samples()
 
     if 'create_trg_image' in MODULES:
         create_trg_images()

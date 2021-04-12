@@ -1,4 +1,4 @@
-MODULES = ['create_trg_image']
+MODULES = []
 MODE = 'samples'
 LABELS = MODE + '.json'
 
