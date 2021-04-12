@@ -14,10 +14,12 @@ def download():
 
 
 def extract():
-    create_path(FOLDER)
-    tar = tarfile.open(ARCHIVENAME)
-    tar.extractall()
-    tar.close()
+    if not path.exists(FOLDER):
+        create_path(DATASETFOLDER)
+        tar = tarfile.open(ARCHIVENAME)
+        tar.extractall()
+        tar.close()
+        os.system('mv ' + TARFOLDER + ' ' + DATASETFOLDER)
+        os.system('mv ' + (DATASETFOLDER + TARFOLDER) + ' ' + FOLDER)
     os.system('rm ' + ARCHIVENAME)
-    os.system('mv ' + TARFOLDER + ' ' + DATASETFOLDER)
 

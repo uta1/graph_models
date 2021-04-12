@@ -1,6 +1,6 @@
 from lib_imports import *
 from consts import *
-from downloader import *
+from samples_maker import *
 from trg_creator import *
 from utils import *
 from nets import *
@@ -20,9 +20,8 @@ if __name__ == '__main__':
         download()
         extract()
 
-    if 'create_trg_image' in MODULES:
+    if 'create_trg_images' in MODULES:
         create_trg_images()
 
     if 'main' in MODULES:
         process()
-
