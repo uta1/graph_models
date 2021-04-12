@@ -26,6 +26,24 @@ def create_path(path):
         create_folder_if_not_exists(cur_path)
 
 
+def cache_and_get_indices():
+    if path.exists(CACHEDLABELSPATH):
+        with open(CACHEDLABELSPATH, 'r') as fp:
+            cached_labels = {
+                int(image_id):value
+                for image_id, value in json.load(fp).items()
+            }
+        with open(CACHEDIDBYFILENAMEPATH, 'r') as fp:
+            image_id_by_file_name = json.load(fp)
+    else:
+        cached_labels, image_id_by_file_name = get_labels_indices()
+        with open(CACHEDLABELSPATH, 'w') as fp:
+            json.dump(cached_labels, fp=fp)
+        with open(CACHEDIDBYFILENAMEPATH, 'w') as fp:
+            json.dump(image_id_by_file_name, fp=fp)
+    return cached_labels, image_id_by_file_name
+
+
 def get_labels_indices():
     labels = get_labels_full()
     labels_by_image_id = {}
