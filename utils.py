@@ -26,7 +26,7 @@ def get_file_names(folder):
 
 
 def create_folder_if_not_exists(folder):
-    if path.exists(folder):
+    if os.path.exists(folder):
         return
     os.mkdir(folder)
 
@@ -46,7 +46,7 @@ def create_path(path):
 
 
 def cache_and_get_indices():
-    if path.exists(CACHED_LABELS_PATH) and path.exists(CACHED_ID_BY_FILE_NAME_PATH):
+    if os.path.exists(CACHED_LABELS_PATH) and os.path.exists(CACHED_ID_BY_FILE_NAME_PATH):
         with open(CACHED_LABELS_PATH, 'r') as fp:
             cached_labels = {
                 int(image_id): value
@@ -65,11 +65,11 @@ def cache_and_get_indices():
 
 def get_labels_indices():
     labels = get_labels_full()
-    labels_by_image_id = {}
+    cached_labels = {}
     image_id_by_file_name = {}
     dims_by_image_id = {}
     for image in labels['images']:
-        labels_by_image_id[image['id']] = {
+        cached_labels[image['id']] = {
             'file_name': FOLDER + image['file_name'],
             'bin_file_name': image_name_to_bin_path(image['file_name']),
             'labels_file_name': image_name_to_label_path(image['file_name']),
@@ -87,13 +87,13 @@ def get_labels_indices():
             dims_by_image_id[ann['image_id']]['width'],
             dims_by_image_id[ann['image_id']]['height']
         )
-        labels_by_image_id[ann['image_id']]['annotations'].append(
+        cached_labels[ann['image_id']]['annotations'].append(
             {
                 'bbox': resize_rect(coef_width, coef_height, ann['bbox']),
                 'category_id': ann['category_id']
             }
         )
-    return labels_by_image_id, image_id_by_file_name
+    return cached_labels, image_id_by_file_name
 
 
 def get_labels_full():

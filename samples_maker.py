@@ -14,14 +14,14 @@ def download():
 
 
 def extract():
-    if not path.exists(FOLDER):
+    if not os.path.exists(FOLDER):
         create_path(SRC_FOLDER)
         tar = tarfile.open(ARCHIVENAME)
         tar.extractall()
         tar.close()
         os.system('mv ' + TARFOLDER + ' ' + SRC_FOLDER)
         os.system('mv ' + (SRC_FOLDER + TARFOLDER) + ' ' + FOLDER)
-        if path.exists(FOLDER + LABELS):
+        if os.path.exists(FOLDER + LABELS):
             os.system('mv ' + (FOLDER + LABELS) + ' ' + LABELS_PATH)
     os.system('rm ' + ARCHIVENAME)
 
