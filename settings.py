@@ -15,12 +15,13 @@ FOLDER = SRCFOLDER + MODE + '/'
 # Directories of labels and target images
 BINFOLDER = TRGFOLDER + MODE + 'bin/'
 LABELSFOLDER = TRGFOLDER + MODE + 'labels/'
+JSONLABELSFOLDER = TRGFOLDER + MODE + 'jsonlabels/'
 
 
 # Labels creation
 LABELSPATH = SRCFOLDER + LABELS
-CACHEDLABELSPATH = LABELSFOLDER + 'cached_' + LABELS
-CACHEDIDBYFILENAMEPATH = LABELSFOLDER + 'cached_id_by_file_name_' + LABELS
+CACHEDLABELSPATH = JSONLABELSFOLDER + 'cached_' + LABELS
+CACHEDIDBYFILENAMEPATH = JSONLABELSFOLDER + 'cached_id_by_file_name_' + LABELS
 
 
 # Rects prediction

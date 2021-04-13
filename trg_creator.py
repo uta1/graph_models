@@ -72,14 +72,15 @@ def create_trg_image(
 
     filename_template =  'trg_' + image_name
 
-    label_filename = LABELSFOLDER + filename_template + '.json'
-    label = json.dumps(
-        {
-            'rects': resized_rects
-        }
-    )
-    with open(label_filename, 'w') as fp:
-        fp.write(label)
+    json_label_filename = JSONLABELSFOLDER + filename_template + '.json'
+    with open(json_label_filename, 'w') as fp:
+        fp.write(
+            json.dumps(
+                {
+                    'rects': resized_rects
+                }
+            )
+        )
 
     res = resize(bined if binarize else original, target_size)
     if plot_bboxes:
@@ -106,6 +107,7 @@ def create_trg_image(
 def create_trg_images():
     create_path(BINFOLDER)
     create_path(LABELSFOLDER)
+    create_path(JSONLABELSFOLDER)
 
     cached_labels, image_id_by_file_name = (None, None)
     if PLOT_BBOXES == 'labels' or FORCE_CACHE_CHECKING:

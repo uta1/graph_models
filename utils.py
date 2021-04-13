@@ -55,6 +55,7 @@ def get_labels_indices():
             'file_name': FOLDER + image['file_name'],
             'bin_file_name': BINFOLDER + 'trg_' + image['file_name'],
             'labels_file_name': LABELSFOLDER + 'trg_' + image['file_name'],
+            'json_labels_file_name': JSONLABELSFOLDER + 'trg_' + image['file_name'],
             'annotations': []
         }
         image_id_by_file_name[image['file_name']] = image['id']
