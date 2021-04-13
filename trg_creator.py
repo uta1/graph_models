@@ -70,16 +70,14 @@ def create_trg_image(
     contours, hier = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     resized_rects = resize_rects(target_size, orig_size, get_rects_by_contours(contours))
 
-    filename_template =  'trg_' + image_name
-
-    label_filename = LABELSFOLDER + filename_template + '.json'
-    label = json.dumps(
-        {
-            'rects': resized_rects
-        }
-    )
-    with open(label_filename, 'w') as fp:
-        fp.write(label)
+    with open(image_name_to_json_path(image_name), 'w') as fp:
+        fp.write(
+            json.dumps(
+                {
+                    'rects': resized_rects
+                }
+            )
+        )
 
     res = resize(bined if binarize else original, target_size)
     if plot_bboxes:
@@ -96,16 +94,17 @@ def create_trg_image(
             rects_to_plot = resized_rects
         for x, y, w, h in rects_to_plot:
             cv2.rectangle(res, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
-    filename = BINFOLDER + filename_template + '.tiff'
-    cv2.imwrite(filename, res)
-    print(res.shape, filename)
+    bin_file_name = image_name_to_bin_path(image_name)
+    cv2.imwrite(bin_file_name, res)
+    print(res.shape, bin_file_name)
 
     return res
 
 
 def create_trg_images():
-    create_path(BINFOLDER)
-    create_path(LABELSFOLDER)
+    create_path(BINS_FOLDER)
+    create_path(LABELS_FOLDER)
+    create_path(JSONS_FOLDER)
 
     cached_labels, image_id_by_file_name = (None, None)
     if PLOT_BBOXES == 'labels' or FORCE_CACHE_CHECKING:

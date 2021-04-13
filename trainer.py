@@ -11,8 +11,8 @@ def train():
         pass
 
     model = unet(input_size=(*TARGET_SIZE, 1))
-    for image in get_file_names(BINFOLDER):
-        img = cv2.imread(BINFOLDER + image)
+    for image in get_file_names(BINS_FOLDER):
+        img = cv2.imread(BINS_FOLDER + image)
         img = np.expand_dims(img[:,:,2:], axis=0)
         print(img.shape)
         model.predict(img)
