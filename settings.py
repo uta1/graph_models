@@ -1,5 +1,5 @@
 # Main
-MODULES = ['prepare_samples', 'create_trg_images', 'train']
+MODULES = ['prepare_samples', 'prepare_trg', 'train']
 MODE = 'samples'
 
 LABELS = MODE + '.json'
@@ -26,7 +26,7 @@ MIN_OBJECT_HEIGHT = 4
 RECTS_DILATION = (7, 6)
 
 # Trg-creator settings
-TARGET_SIZE = (512, 512)
-BINARIZE = True
-PLOT_BBOXES = None
-FORCE_CACHE_CHECKING = True
+TARGET_SIZE = (512, 512)  # None or tuple
+BINARIZE = True  # Bool
+PLOT_BBOXES = None  # [None | 'predict' | 'labels']
+FORCE_CACHE_CHECKING = True  # Bool
