@@ -60,6 +60,20 @@ def prepare_predicted_rects(bined, orig_size):
     return resize_rects(orig_size, get_rects_by_contours(contours))
 
 
+def get_rects_to_plot_bboxes(bboxes_to_plot, predicted_rects, labeled_rects):
+    if bboxes_to_plot == 'predicted':
+        return predicted_rects
+    if bboxes_to_plot == 'labeled':
+        return labeled_rects
+
+
+def get_color_to_plot_bboxes(bboxes_to_plot):
+    if bboxes_to_plot == 'predicted':
+        return (0, 255, 0)
+    if bboxes_to_plot == 'labeled':
+        return (255, 0, 255)
+
+
 def prepare_trg_for_image(
         image_name,
         cached_labels,
@@ -73,6 +87,11 @@ def prepare_trg_for_image(
 
     bined = prepare_bined(original)
     predicted_rects = prepare_predicted_rects(bined, orig_size)
+    labeled_rects = resize_rects(
+        orig_size,
+        extract_rects_from_label(image_name, cached_labels, image_id_by_file_name),
+        force_floor=True
+    )
 
     if SAVE_JSONS:
         with open(image_name_to_json_path(image_name), 'w') as fp:
@@ -85,19 +104,14 @@ def prepare_trg_for_image(
             )
 
     res = resize(bined if BINARIZE else original)
-    if PLOT_BBOXES:
-        if BINARIZE:
-            res = np.tile(res[..., None], 3)
-        if PLOT_BBOXES == 'labels':
-            rects_to_plot = resize_rects(
-                orig_size,
-                extract_rects_from_label(image_name, cached_labels, image_id_by_file_name),
-                force_floor=True
-            )
-        else:
-            rects_to_plot = predicted_rects
-        for x, y, w, h in rects_to_plot:
-            cv2.rectangle(res, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
+
+    if BBOXES_TO_PLOT and BINARIZE:
+        res = np.tile(res[..., None], 3)
+    for bboxes_to_plot in BBOXES_TO_PLOT:
+        color = get_color_to_plot_bboxes(bboxes_to_plot)
+        for x, y, w, h in get_rects_to_plot_bboxes(bboxes_to_plot, predicted_rects, labeled_rects):
+            cv2.rectangle(res, (x, y), (x + w, y + h), color=color, thickness=1)
+
     bin_file_name = image_name_to_bin_path(image_name)
     cv2.imwrite(bin_file_name, res)
     print(res.shape, bin_file_name)
@@ -111,7 +125,7 @@ def prepare_trg():
     create_path(JSONS_FOLDER)
 
     cached_labels, image_id_by_file_name = (None, None)
-    if PLOT_BBOXES == 'labels' or FORCE_CACHE_CHECKING:
+    if BBOXES_TO_PLOT == 'labeled' or FORCE_CACHE_CHECKING:
         cached_labels, image_id_by_file_name = cache_and_get_indices()
 
     for image_name in get_file_names(FOLDER):
