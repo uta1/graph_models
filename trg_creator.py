@@ -1,5 +1,5 @@
 from lib_imports import *
-from consts import *
+from settings import *
 from utils import *
 
 
@@ -104,16 +104,11 @@ def create_trg_image(
 
 
 def create_trg_images():
-    target_size = (512, 512)
-    binarize = True
-    plot_bboxes = None
-    force_cache_checking = True
-
     create_path(BINFOLDER)
     create_path(LABELSFOLDER)
 
     cached_labels, image_id_by_file_name = (None, None)
-    if plot_bboxes == 'labels' or force_cache_checking:
+    if PLOT_BBOXES == 'labels' or FORCE_CACHE_CHECKING:
         cached_labels, image_id_by_file_name = cache_and_get_indices()
 
     for image in get_file_names(FOLDER):
@@ -121,8 +116,8 @@ def create_trg_images():
             image,
             cached_labels,
             image_id_by_file_name,
-            target_size=target_size,
-            binarize=binarize,
-            plot_bboxes=plot_bboxes
+            target_size=TARGET_SIZE,
+            binarize=BINARIZE,
+            plot_bboxes=PLOT_BBOXES
         )
 
