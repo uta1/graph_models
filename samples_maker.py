@@ -21,5 +21,7 @@ def extract():
         tar.close()
         os.system('mv ' + TARFOLDER + ' ' + DATASETFOLDER)
         os.system('mv ' + (DATASETFOLDER + TARFOLDER) + ' ' + FOLDER)
+        if path.exists(FOLDER + LABELS):
+            os.system('mv ' + (FOLDER + LABELS) + ' ' + LABELSPATH)
     os.system('rm ' + ARCHIVENAME)
 

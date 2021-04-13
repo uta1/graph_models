@@ -1,4 +1,4 @@
-MODULES = ['create_trg_images']
+MODULES = ['download', 'create_trg_images', 'main']
 MODE = 'samples'
 
 DATASETTEMPLATE = 'trg'
@@ -9,7 +9,7 @@ BINFOLDER = DATASETFOLDER + MODE + 'bin/'
 LABELSFOLDER = DATASETFOLDER + MODE + 'labels/'
 
 LABELS = MODE + '.json'
-LABELSPATH = FOLDER + LABELS
+LABELSPATH = DATASETFOLDER + LABELS
 CACHEDLABELSPATH = LABELSFOLDER + 'cached_' + LABELS
 CACHEDIDBYFILENAMEPATH = LABELSFOLDER + 'cached_id_by_file_name_' + LABELS
 
