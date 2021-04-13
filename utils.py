@@ -47,7 +47,7 @@ def cache_and_get_indices():
     if path.exists(CACHED_LABELS_PATH) and path.exists(CACHED_ID_BY_FILE_NAME_PATH):
         with open(CACHED_LABELS_PATH, 'r') as fp:
             cached_labels = {
-                int(image_id):value
+                int(image_id): value
                 for image_id, value in json.load(fp).items()
             }
         with open(CACHED_ID_BY_FILE_NAME_PATH, 'r') as fp:
@@ -87,4 +87,3 @@ def get_labels_indices():
 def get_labels_full():
     with open(LABELS_PATH, 'r') as fp:
         return json.load(fp)
-
