@@ -1,6 +1,6 @@
 from lib_imports import *
-from consts import *
 from samples_maker import *
+from settings import *
 from trg_creator import *
 from utils import *
 from nets import *

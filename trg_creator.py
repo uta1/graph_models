@@ -1,5 +1,5 @@
 from lib_imports import *
-from consts import *
+from settings import *
 from utils import *
 
 
