@@ -48,6 +48,11 @@ def extract_rects_from_label(image_name, cached_labels, image_id_by_file_name):
     ]
 
 
+def prepare_bined(original):
+    im_gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
+    return cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)[1]
+
+
 def prepare_predicted_rects(bined, orig_size):
     rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, RECTS_DILATION)
     dilation = cv2.dilate(bined, rect_kernel, iterations=1)
@@ -65,19 +70,19 @@ def prepare_trg_for_image(
 
     original = cv2.imread(FOLDER + image_name)
     orig_size = original.shape[:2]
-    im_gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
-    th, bined = cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
 
+    bined = prepare_bined(original)
     predicted_rects = prepare_predicted_rects(bined, orig_size)
 
-    with open(image_name_to_json_path(image_name), 'w') as fp:
-        fp.write(
-            json.dumps(
-                {
-                    'rects': predicted_rects
-                }
+    if SAVE_JSONS:
+        with open(image_name_to_json_path(image_name), 'w') as fp:
+            fp.write(
+                json.dumps(
+                    {
+                        'rects': predicted_rects
+                    }
+                )
             )
-        )
 
     res = resize(bined if BINARIZE else original)
     if PLOT_BBOXES:

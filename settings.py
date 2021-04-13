@@ -30,3 +30,4 @@ TARGET_SIZE = (512, 512)  # None or tuple
 BINARIZE = True  # Bool
 PLOT_BBOXES = None  # [None | 'predict' | 'labels']
 FORCE_CACHE_CHECKING = True  # Bool
+SAVE_JSONS = False
