@@ -26,8 +26,8 @@ def extract():
     os.system('rm ' + ARCHIVENAME)
 
 def prepare_samples():
-    # to economy time
-    if MODE != 'samples':
+    # for safety
+    if MODE != 'samples' or 'publaynet' in SRCFOLDER:
         return
 
     download()

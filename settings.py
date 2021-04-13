@@ -1,5 +1,5 @@
 # Main
-MODULES = ['prepare_samples', 'create_trg_images', 'main']
+MODULES = ['prepare_samples', 'create_trg_images', 'train']
 MODE = 'samples'
 
 LABELS = MODE + '.json'
