@@ -16,9 +16,8 @@ def process():
 
 
 if __name__ == '__main__':
-    if 'download' in MODULES:
-        download()
-        extract()
+    if 'prepare_samples' in MODULES:
+        prepare_samples()
 
     if 'create_trg_images' in MODULES:
         create_trg_images()

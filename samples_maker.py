@@ -25,3 +25,11 @@ def extract():
             os.system('mv ' + (FOLDER + LABELS) + ' ' + LABELSPATH)
     os.system('rm ' + ARCHIVENAME)
 
+def prepare_samples():
+    # to economy time
+    if MODE != 'samples':
+        return
+
+    download()
+    extract()
+
