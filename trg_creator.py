@@ -1,4 +1,6 @@
 from lib_imports import *
+
+from geometry import *
 from settings import *
 from utils import *
 
@@ -8,39 +10,6 @@ def get_rects_by_contours(contours):
     return [list(rect) for rect in rects if rect[-2] >= MIN_OBJECT_WIDTH and rect[-1] >= MIN_OBJECT_HEIGHT]
 
 
-def resize(orig, target_size):
-    if target_size:
-        return cv2.resize(orig, target_size, interpolation=cv2.INTER_NEAREST)
-    return orig
-
-
-def floor(rect):
-    return [
-        math.floor(elem)
-        for elem in rect
-    ]
-
-
-def resize_rect(coef_width, coef_height, rect):
-    return floor(
-        [
-            rect[0] * coef_width,
-            rect[1] * coef_height,
-            rect[2] * coef_width,
-            rect[3] * coef_height,
-        ]
-    )
-
-
-def resize_rects(target_size, orig_size, rects, force_floor=False):
-    if not target_size:
-        return [floor(rect) for rect in rects] if force_floor else rects
-
-    coef_width = float(target_size[1]) / orig_size[1]
-    coef_height = float(target_size[0]) / orig_size[0]
-    return [resize_rect(coef_width, coef_height, rect) for rect in rects]
-
-
 def extract_rects_from_label(image_name, cached_labels, image_id_by_file_name):
     return [
         ann['bbox']
@@ -48,52 +17,92 @@ def extract_rects_from_label(image_name, cached_labels, image_id_by_file_name):
     ]
 
 
-# plot_bboxes = [None | 'predict' | 'labels']
-def create_trg_image(
+def prepare_bined(original):
+    im_gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
+    return cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)[1]
+
+
+def predict_rects(bined):
+    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, RECTS_DILATION)
+    dilation = cv2.dilate(bined, rect_kernel, iterations=1)
+    contours, _ = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    return get_rects_by_contours(contours)
+
+
+def get_rects_to_plot_bboxes(bboxes_to_plot, predicted_rects, labeled_rects):
+    if bboxes_to_plot == 'predicted':
+        return predicted_rects
+    if bboxes_to_plot == 'labeled':
+        return labeled_rects
+
+
+def get_color_to_plot_bboxes(bboxes_to_plot):
+    if bboxes_to_plot == 'predicted':
+        return (0, 255, 0)
+    if bboxes_to_plot == 'labeled':
+        return (255, 0, 255)
+
+
+def save_image_json(image_name, predicted_rects):
+    with open(image_name_to_json_path(image_name), 'w') as fp:
+        fp.write(
+            json.dumps(
+                {
+                    'rects': predicted_rects
+                }
+            )
+        )
+
+
+def build_label_by_rects(image_name, cached_labels, image_id_by_file_name, shape):
+    res = np.zeros(shape, dtype=np.int32)
+    for ann in cached_labels[image_id_by_file_name[image_name]]['annotations']:
+        x, y, w, h = ann['bbox']
+        res[y:y + h, x:x + w] = ann['category_id']
+    return res
+
+
+def prepare_trg_for_image(
         image_name,
         cached_labels,
         image_id_by_file_name,
-        target_size=(512, 512),
-        binarize=True,
-        plot_bboxes=None
 ):
     if not image_name.startswith('PMC'):
         return
 
     original = cv2.imread(FOLDER + image_name)
     orig_size = original.shape[:2]
-    im_gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
-    th, bined = cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
 
-    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, RECTS_DILATION)
-    dilation = cv2.dilate(bined, rect_kernel, iterations=1)
-    contours, hier = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    resized_rects = resize_rects(target_size, orig_size, get_rects_by_contours(contours))
+    bined = prepare_bined(original)
+    predicted_rects = resize_rects(
+        orig_size,
+        predict_rects(bined)
+    )
+    # already resized in get_labels_indices()
+    labeled_rects = extract_rects_from_label(image_name, cached_labels, image_id_by_file_name)
 
-    with open(image_name_to_json_path(image_name), 'w') as fp:
-        fp.write(
-            json.dumps(
-                {
-                    'rects': resized_rects
-                }
-            )
+    if SAVE_JSONS:
+        save_image_json(image_name, predicted_rects)
+
+    res = resize(bined if BINARIZE else original)
+
+    if BBOXES_TO_PLOT and BINARIZE:
+        res = np.tile(res[..., None], 3)
+    for bboxes_to_plot in BBOXES_TO_PLOT:
+        color = get_color_to_plot_bboxes(bboxes_to_plot)
+        for x, y, w, h in get_rects_to_plot_bboxes(bboxes_to_plot, predicted_rects, labeled_rects):
+            cv2.rectangle(res, (x, y), (x + w, y + h), color=color, thickness=1)
+
+    cv2.imwrite(
+        image_name_to_label_path(image_name),
+        build_label_by_rects(
+            image_name,
+            cached_labels,
+            image_id_by_file_name,
+            shape=TARGET_SIZE or orig_size
         )
+    )
 
-    res = resize(bined if binarize else original, target_size)
-    if plot_bboxes:
-        if binarize:
-            res = np.tile(res[..., None], 3)
-        if plot_bboxes == 'labels':
-            rects_to_plot = resize_rects(
-                target_size,
-                orig_size,
-                extract_rects_from_label(image_name, cached_labels, image_id_by_file_name),
-                force_floor=True
-            )
-        else:
-            rects_to_plot = resized_rects
-        for x, y, w, h in rects_to_plot:
-            cv2.rectangle(res, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=1)
     bin_file_name = image_name_to_bin_path(image_name)
     cv2.imwrite(bin_file_name, res)
     print(res.shape, bin_file_name)
@@ -101,21 +110,18 @@ def create_trg_image(
     return res
 
 
-def create_trg_images():
+def prepare_trg():
     create_path(BINS_FOLDER)
     create_path(LABELS_FOLDER)
     create_path(JSONS_FOLDER)
 
     cached_labels, image_id_by_file_name = (None, None)
-    if PLOT_BBOXES == 'labels' or FORCE_CACHE_CHECKING:
+    if BBOXES_TO_PLOT == 'labeled' or FORCE_CACHE_CHECKING:
         cached_labels, image_id_by_file_name = cache_and_get_indices()
 
-    for image in get_file_names(FOLDER):
-        create_trg_image(
-            image,
+    for image_name in get_file_names(FOLDER):
+        prepare_trg_for_image(
+            image_name,
             cached_labels,
             image_id_by_file_name,
-            target_size=TARGET_SIZE,
-            binarize=BINARIZE,
-            plot_bboxes=PLOT_BBOXES
         )
