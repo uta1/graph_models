@@ -15,12 +15,12 @@ def download():
 
 def extract():
     if not path.exists(FOLDER):
-        create_path(DATASETFOLDER)
+        create_path(SRCFOLDER)
         tar = tarfile.open(ARCHIVENAME)
         tar.extractall()
         tar.close()
-        os.system('mv ' + TARFOLDER + ' ' + DATASETFOLDER)
-        os.system('mv ' + (DATASETFOLDER + TARFOLDER) + ' ' + FOLDER)
+        os.system('mv ' + TARFOLDER + ' ' + SRCFOLDER)
+        os.system('mv ' + (SRCFOLDER + TARFOLDER) + ' ' + FOLDER)
         if path.exists(FOLDER + LABELS):
             os.system('mv ' + (FOLDER + LABELS) + ' ' + LABELSPATH)
     os.system('rm ' + ARCHIVENAME)
