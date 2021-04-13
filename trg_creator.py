@@ -50,12 +50,12 @@ def extract_rects_from_label(image_name, cached_labels, image_id_by_file_name):
 
 # plot_bboxes = [None | 'predict' | 'labels']
 def create_trg_image(
-    image_name,
-    cached_labels,
-    image_id_by_file_name,
-    target_size=(512, 512),
-    binarize=True,
-    plot_bboxes=None
+        image_name,
+        cached_labels,
+        image_id_by_file_name,
+        target_size=(512, 512),
+        binarize=True,
+        plot_bboxes=None
 ):
     if not image_name.startswith('PMC'):
         return
@@ -119,4 +119,3 @@ def create_trg_images():
             binarize=BINARIZE,
             plot_bboxes=PLOT_BBOXES
         )
-
