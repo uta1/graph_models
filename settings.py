@@ -6,7 +6,7 @@ LABELS = MODE + '.json'
 
 
 # Directories of data
-SRCFOLDER = '../trg/'
+SRCFOLDER = '../src/'
 TRGFOLDER = '../trg/'
 
 FOLDER = SRCFOLDER + MODE + '/'
