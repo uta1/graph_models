@@ -15,6 +15,8 @@ def create_folder_if_not_exists(folder):
 
 
 def create_path(path):
+    assert 'publaynet' not in path
+
     if path[-1] == '/':
         path = path[:-1]
 
