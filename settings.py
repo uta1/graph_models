@@ -6,22 +6,22 @@ LABELS = MODE + '.json'
 
 
 # Directories of data
-SRCFOLDER = '../src/'
-TRGFOLDER = '../trg/'
+SRC_FOLDER = '../src/'
+TRG_FOLDER = '../trg/'
 
-FOLDER = SRCFOLDER + MODE + '/'
+FOLDER = SRC_FOLDER + MODE + '/'
 
 
 # Directories of labels and target images
-BINFOLDER = TRGFOLDER + MODE + 'bin/'
-LABELSFOLDER = TRGFOLDER + MODE + 'labels/'
-JSONLABELSFOLDER = TRGFOLDER + MODE + 'jsonlabels/'
+BINS_FOLDER = TRG_FOLDER + MODE + '_bins/'
+LABELS_FOLDER = TRG_FOLDER + MODE + '_labels/'
+JSONS_FOLDER = TRG_FOLDER + MODE + '_jsons/'
 
 
 # Labels creation
-LABELSPATH = SRCFOLDER + LABELS
-CACHEDLABELSPATH = JSONLABELSFOLDER + 'cached_' + LABELS
-CACHEDIDBYFILENAMEPATH = JSONLABELSFOLDER + 'cached_id_by_file_name_' + LABELS
+LABELS_PATH = SRC_FOLDER + LABELS
+CACHED_LABELS_PATH = JSONS_FOLDER + 'cached_' + LABELS
+CACHED_ID_BY_FILE_NAME_PATH = JSONS_FOLDER + 'cached_id_by_file_name_' + LABELS
 
 
 # Rects prediction

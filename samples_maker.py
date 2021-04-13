@@ -15,19 +15,19 @@ def download():
 
 def extract():
     if not path.exists(FOLDER):
-        create_path(SRCFOLDER)
+        create_path(SRC_FOLDER)
         tar = tarfile.open(ARCHIVENAME)
         tar.extractall()
         tar.close()
-        os.system('mv ' + TARFOLDER + ' ' + SRCFOLDER)
-        os.system('mv ' + (SRCFOLDER + TARFOLDER) + ' ' + FOLDER)
+        os.system('mv ' + TARFOLDER + ' ' + SRC_FOLDER)
+        os.system('mv ' + (SRC_FOLDER + TARFOLDER) + ' ' + FOLDER)
         if path.exists(FOLDER + LABELS):
-            os.system('mv ' + (FOLDER + LABELS) + ' ' + LABELSPATH)
+            os.system('mv ' + (FOLDER + LABELS) + ' ' + LABELS_PATH)
     os.system('rm ' + ARCHIVENAME)
 
 def prepare_samples():
     # for safety
-    if MODE != 'samples' or 'publaynet' in SRCFOLDER:
+    if MODE != 'samples' or 'publaynet' in SRC_FOLDER:
         return
 
     download()
