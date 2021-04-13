@@ -1,4 +1,6 @@
 from lib_imports import *
+
+from geometry import *
 from settings import *
 from utils import *
 
@@ -6,39 +8,6 @@ from utils import *
 def get_rects_by_contours(contours):
     rects = [cv2.boundingRect(contour) for contour in contours]
     return [list(rect) for rect in rects if rect[-2] >= MIN_OBJECT_WIDTH and rect[-1] >= MIN_OBJECT_HEIGHT]
-
-
-def resize(orig):
-    if TARGET_SIZE:
-        return cv2.resize(orig, TARGET_SIZE, interpolation=cv2.INTER_NEAREST)
-    return orig
-
-
-def floor(rect):
-    return [
-        math.floor(elem)
-        for elem in rect
-    ]
-
-
-def resize_rect(coef_width, coef_height, rect):
-    return floor(
-        [
-            rect[0] * coef_width,
-            rect[1] * coef_height,
-            rect[2] * coef_width,
-            rect[3] * coef_height,
-        ]
-    )
-
-
-def resize_rects(orig_size, rects, force_floor=False):
-    if not TARGET_SIZE:
-        return [floor(rect) for rect in rects] if force_floor else rects
-
-    coef_width = float(TARGET_SIZE[1]) / orig_size[1]
-    coef_height = float(TARGET_SIZE[0]) / orig_size[0]
-    return [resize_rect(coef_width, coef_height, rect) for rect in rects]
 
 
 def extract_rects_from_label(image_name, cached_labels, image_id_by_file_name):
@@ -53,11 +22,11 @@ def prepare_bined(original):
     return cv2.threshold(im_gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)[1]
 
 
-def prepare_predicted_rects(bined, orig_size):
+def predict_rects(bined):
     rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, RECTS_DILATION)
     dilation = cv2.dilate(bined, rect_kernel, iterations=1)
     contours, _ = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    return resize_rects(orig_size, get_rects_by_contours(contours))
+    return get_rects_by_contours(contours)
 
 
 def get_rects_to_plot_bboxes(bboxes_to_plot, predicted_rects, labeled_rects):
@@ -74,6 +43,25 @@ def get_color_to_plot_bboxes(bboxes_to_plot):
         return (255, 0, 255)
 
 
+def save_image_json(image_name, predicted_rects):
+    with open(image_name_to_json_path(image_name), 'w') as fp:
+        fp.write(
+            json.dumps(
+                {
+                    'rects': predicted_rects
+                }
+            )
+        )
+
+
+def build_label_by_rects(image_name, cached_labels, image_id_by_file_name, shape):
+    res = np.zeros(shape, dtype=np.int32)
+    for ann in cached_labels[image_id_by_file_name[image_name]]['annotations']:
+        x, y, w, h = ann['bbox']
+        res[y:y + h, x:x + w] = ann['category_id']
+    return res
+
+
 def prepare_trg_for_image(
         image_name,
         cached_labels,
@@ -86,22 +74,15 @@ def prepare_trg_for_image(
     orig_size = original.shape[:2]
 
     bined = prepare_bined(original)
-    predicted_rects = prepare_predicted_rects(bined, orig_size)
-    labeled_rects = resize_rects(
+    predicted_rects = resize_rects(
         orig_size,
-        extract_rects_from_label(image_name, cached_labels, image_id_by_file_name),
-        force_floor=True
+        predict_rects(bined)
     )
+    # already resized in get_labels_indices()
+    labeled_rects = extract_rects_from_label(image_name, cached_labels, image_id_by_file_name)
 
     if SAVE_JSONS:
-        with open(image_name_to_json_path(image_name), 'w') as fp:
-            fp.write(
-                json.dumps(
-                    {
-                        'rects': predicted_rects
-                    }
-                )
-            )
+        save_image_json(image_name, predicted_rects)
 
     res = resize(bined if BINARIZE else original)
 
@@ -111,6 +92,16 @@ def prepare_trg_for_image(
         color = get_color_to_plot_bboxes(bboxes_to_plot)
         for x, y, w, h in get_rects_to_plot_bboxes(bboxes_to_plot, predicted_rects, labeled_rects):
             cv2.rectangle(res, (x, y), (x + w, y + h), color=color, thickness=1)
+
+    cv2.imwrite(
+        image_name_to_label_path(image_name),
+        build_label_by_rects(
+            image_name,
+            cached_labels,
+            image_id_by_file_name,
+            shape=TARGET_SIZE or orig_size
+        )
+    )
 
     bin_file_name = image_name_to_bin_path(image_name)
     cv2.imwrite(bin_file_name, res)

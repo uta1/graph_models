@@ -28,6 +28,6 @@ RECTS_DILATION = (7, 6)
 # Trg-creator settings
 TARGET_SIZE = (512, 512)  # None or tuple
 BINARIZE = True  # Bool
-BBOXES_TO_PLOT = ['predicted', 'labeled']  # elements: ['predicted' | 'labeled']
+BBOXES_TO_PLOT = []  # elements: ['predicted' | 'labeled']
 FORCE_CACHE_CHECKING = True  # Bool
 SAVE_JSONS = False

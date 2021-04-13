@@ -1,4 +1,6 @@
 from lib_imports import *
+
+from geometry import *
 from settings import *
 
 
@@ -65,6 +67,7 @@ def get_labels_indices():
     labels = get_labels_full()
     labels_by_image_id = {}
     image_id_by_file_name = {}
+    dims_by_image_id = {}
     for image in labels['images']:
         labels_by_image_id[image['id']] = {
             'file_name': FOLDER + image['file_name'],
@@ -73,11 +76,20 @@ def get_labels_indices():
             'json_labels_file_name': image_name_to_json_path(image['file_name']),
             'annotations': []
         }
+        dims_by_image_id[image['id']] = {
+            'width': image['width'],
+            'height': image['height']
+        }
         image_id_by_file_name[image['file_name']] = image['id']
+
     for ann in labels['annotations']:
+        coef_width, coef_height = get_resizing_coefs(
+            dims_by_image_id[ann['image_id']]['width'],
+            dims_by_image_id[ann['image_id']]['height']
+        )
         labels_by_image_id[ann['image_id']]['annotations'].append(
             {
-                'bbox': ann['bbox'],
+                'bbox': resize_rect(coef_width, coef_height, ann['bbox']),
                 'category_id': ann['category_id']
             }
         )
