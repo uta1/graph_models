@@ -31,3 +31,6 @@ BINARIZE = True  # Bool
 BBOXES_TO_PLOT = []  # elements: ['predicted' | 'labeled']
 FORCE_CACHE_CHECKING = True  # Bool
 SAVE_JSONS = False
+
+# Learning
+BATCH_SIZE = 1
