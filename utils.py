@@ -1,23 +1,27 @@
 from lib_imports import *
 
 from geometry import *
-from settings import *
+from config import *
 
 
 def remove_extension(file_name):
     return file_name.split('.')[0]
 
 
+def image_name_to_path(image_name):
+    return config.FOLDER + image_name
+
+
 def image_name_to_bin_path(image_name):
-    return BINS_FOLDER + 'trg_b_' + remove_extension(image_name) + '.tiff'
+    return config.BINS_FOLDER + 'trg_b_' + remove_extension(image_name) + '.tiff'
 
 
 def image_name_to_json_path(image_name):
-    return JSONS_FOLDER + 'trg_j_' + remove_extension(image_name) + '.json'
+    return config.JSONS_FOLDER + 'trg_j_' + remove_extension(image_name) + '.json'
 
 
 def image_name_to_label_path(image_name):
-    return LABELS_FOLDER + 'trg_l_' + remove_extension(image_name) + '.tiff'
+    return config.LABELS_FOLDER + 'trg_l_' + remove_extension(image_name) + '.tiff'
 
 
 def get_file_names(folder):
@@ -46,15 +50,15 @@ def create_path(path):
 
 
 def cache_and_get_images_metainfo():
-    if os.path.exists(CACHED_LABELS_PATH):
-        with open(CACHED_LABELS_PATH, 'r') as fp:
+    if os.path.exists(config.CACHED_LABELS_PATH):
+        with open(config.CACHED_LABELS_PATH, 'r') as fp:
             images_metainfo = {
                 int(image_id): value
                 for image_id, value in json.load(fp).items()
             }
     else:
         images_metainfo = get_images_metainfo()
-        with open(CACHED_LABELS_PATH, 'w') as fp:
+        with open(config.CACHED_LABELS_PATH, 'w') as fp:
             json.dump(images_metainfo, fp=fp)
     return images_metainfo
 
@@ -65,7 +69,7 @@ def get_images_metainfo():
     dims_by_image_id = {}
     for image in labels['images']:
         images_metainfo[image['id']] = {
-            'file_path': FOLDER + image['file_name'],
+            'file_path': image_name_to_path(image['file_name']),
             'bin_file_path': image_name_to_bin_path(image['file_name']),
             'label_file_path': image_name_to_label_path(image['file_name']),
             'json_label_file_path': image_name_to_json_path(image['file_name']),
@@ -92,5 +96,5 @@ def get_images_metainfo():
 
 
 def get_images_fullinfo():
-    with open(LABELS_PATH, 'r') as fp:
+    with open(config.LABELS_PATH, 'r') as fp:
         return json.load(fp)

@@ -1,6 +1,6 @@
 from lib_imports import *
 
-from settings import *
+from config import *
 from utils import *
 
 ARCHIVENAME = 'examples.tar.gz'
@@ -14,21 +14,21 @@ def download():
 
 
 def extract():
-    if not os.path.exists(FOLDER):
-        create_path(SRC_FOLDER)
+    if not os.path.exists(config.FOLDER):
+        create_path(config.SRC_FOLDER_PATH)
         tar = tarfile.open(ARCHIVENAME)
         tar.extractall()
         tar.close()
-        os.system('mv ' + TARFOLDER + ' ' + SRC_FOLDER)
-        os.system('mv ' + (SRC_FOLDER + TARFOLDER) + ' ' + FOLDER)
-        if os.path.exists(FOLDER + LABELS):
-            os.system('mv ' + (FOLDER + LABELS) + ' ' + LABELS_PATH)
+        os.system('mv ' + TARFOLDER + ' ' + config.SRC_FOLDER_PATH)
+        os.system('mv ' + (config.SRC_FOLDER_PATH + TARFOLDER) + ' ' + config.FOLDER)
+        if os.path.exists(config.FOLDER + config.LABELS):
+            os.system('mv ' + (config.FOLDER + config.LABELS) + ' ' + config.LABELS_PATH)
     os.system('rm ' + ARCHIVENAME)
 
 
 def prepare_samples():
     # for safety
-    if MODE != 'samples' or 'publaynet' in SRC_FOLDER:
+    if config.MODE != 'samples' or 'publaynet' in config.SRC_FOLDER_PATH:
         return
 
     download()
