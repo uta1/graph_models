@@ -30,7 +30,7 @@ class Config:
     RECTS_DILATION = (7, 6)
 
     # Trg-creator settings
-    TARGET_SIZE = (1024, 512)  # None or tuple
+    TARGET_SIZE = (512, 512)  # None or tuple
     BINARIZE = True  # Bool
     BBOXES_TO_PLOT = []  # elements: 'predicted', 'labeled'
     SAVE_JSONS = False
