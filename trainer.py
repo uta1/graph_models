@@ -5,14 +5,14 @@ from settings import *
 from utils import *
 
 
-def generate_data(cached_labels):
+def generate_data(images_metainfo):
     while True:
         batch_x = []
         batch_y = []
-        for image_data in cached_labels.values():
-            bined = cv2.imread(image_data['bin_file_name'])[:, :, 0]
+        for image_metainfo in images_metainfo.values():
+            bined = cv2.imread(image_metainfo['bin_file_path'])[:, :, 0]
             batch_x.append(np.expand_dims(bined, axis=-1))
-            labels = cv2.imread(image_data['labels_file_name'])[:, :, 0]
+            labels = cv2.imread(image_metainfo['label_file_path'])[:, :, 0]
             batch_y.append(np.expand_dims(labels, axis=-1))
 
             if len(batch_x) == BATCH_SIZE:
@@ -27,10 +27,10 @@ def generate_data(cached_labels):
 
 def train():
     model = unet(input_size=(*TARGET_SIZE, 1))
-    cached_labels, image_id_by_file_name = cache_and_get_indices()
+    images_metainfo = cache_and_get_images_metainfo()
 
-    steps_per_epoch = len(cached_labels) / BATCH_SIZE + (0 if len(cached_labels) % BATCH_SIZE == 0 else 1)
+    steps_per_epoch = len(images_metainfo) / BATCH_SIZE + (0 if len(images_metainfo) % BATCH_SIZE == 0 else 1)
     model.fit_generator(
-        generate_data(cached_labels),
+        generate_data(images_metainfo),
         steps_per_epoch=steps_per_epoch
     )
