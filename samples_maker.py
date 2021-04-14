@@ -1,6 +1,6 @@
 from lib_imports import *
 
-from settings import *
+from config import *
 from utils import *
 
 ARCHIVENAME = 'examples.tar.gz'

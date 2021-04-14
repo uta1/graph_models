@@ -1,5 +1,5 @@
 from lib_imports import *
-from settings import *
+from config import *
 
 
 def resize(orig):

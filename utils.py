@@ -1,7 +1,7 @@
 from lib_imports import *
 
 from geometry import *
-from settings import *
+from config import *
 
 
 def remove_extension(file_name):

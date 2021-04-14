@@ -1,7 +1,7 @@
 from lib_imports import *
 
 from nets import *
-from settings import *
+from config import *
 from utils import *
 
 
