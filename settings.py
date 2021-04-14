@@ -32,7 +32,7 @@ class Config:
     # Trg-creator settings
     TARGET_SIZE = (1024, 512)  # None or tuple
     BINARIZE = True  # Bool
-    BBOXES_TO_PLOT = ['predicted', 'labeled']  # elements: 'predicted', 'labeled'
+    BBOXES_TO_PLOT = []  # elements: 'predicted', 'labeled'
     SAVE_JSONS = False
 
     # Learning
