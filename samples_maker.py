@@ -15,12 +15,12 @@ def download():
 
 def extract():
     if not os.path.exists(config.FOLDER):
-        create_path(config.SRC_FOLDER)
+        create_path(config.SRC_FOLDER_PATH)
         tar = tarfile.open(ARCHIVENAME)
         tar.extractall()
         tar.close()
-        os.system('mv ' + TARFOLDER + ' ' + config.SRC_FOLDER)
-        os.system('mv ' + (config.SRC_FOLDER + TARFOLDER) + ' ' + config.FOLDER)
+        os.system('mv ' + TARFOLDER + ' ' + config.SRC_FOLDER_PATH)
+        os.system('mv ' + (config.SRC_FOLDER_PATH + TARFOLDER) + ' ' + config.FOLDER)
         if os.path.exists(config.FOLDER + config.LABELS):
             os.system('mv ' + (config.FOLDER + config.LABELS) + ' ' + config.LABELS_PATH)
     os.system('rm ' + ARCHIVENAME)
@@ -28,7 +28,7 @@ def extract():
 
 def prepare_samples():
     # for safety
-    if config.MODE != 'samples' or 'publaynet' in config.SRC_FOLDER:
+    if config.MODE != 'samples' or 'publaynet' in config.SRC_FOLDER_PATH:
         return
 
     download()
