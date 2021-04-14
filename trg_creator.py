@@ -7,7 +7,12 @@ from utils import *
 
 def get_rects_by_contours(contours):
     rects = [cv2.boundingRect(contour) for contour in contours]
-    return [list(rect) for rect in rects if rect[-2] >= MIN_OBJECT_WIDTH and rect[-1] >= MIN_OBJECT_HEIGHT]
+    return [
+        list(rect)
+        for rect in rects if (
+                rect[-2] >= config.MIN_OBJECT_WIDTH and rect[-1] >= config.MIN_OBJECT_HEIGHT
+        )
+    ]
 
 
 def extract_rects_from_metainfo(image_metainfo):
@@ -23,7 +28,7 @@ def prepare_bined(original):
 
 
 def predict_rects(bined):
-    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, RECTS_DILATION)
+    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, config.RECTS_DILATION)
     dilation = cv2.dilate(bined, rect_kernel, iterations=1)
     contours, _ = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     return get_rects_by_contours(contours)
@@ -74,14 +79,14 @@ def prepare_trg_for_image(image_metainfo):
     # already resized in get_images_metainfo()
     labeled_rects = extract_rects_from_metainfo(image_metainfo)
 
-    if SAVE_JSONS:
+    if config.SAVE_JSONS:
         save_image_json(image_metainfo, predicted_rects)
 
-    res = resize(bined if BINARIZE else original)
+    res = resize(bined if config.BINARIZE else original)
 
-    if BBOXES_TO_PLOT and BINARIZE:
+    if config.BBOXES_TO_PLOT and config.BINARIZE:
         res = np.tile(res[..., None], 3)
-    for bboxes_to_plot in BBOXES_TO_PLOT:
+    for bboxes_to_plot in config.BBOXES_TO_PLOT:
         color = get_color_to_plot_bboxes(bboxes_to_plot)
         for x, y, w, h in get_rects_to_plot_bboxes(bboxes_to_plot, predicted_rects, labeled_rects):
             cv2.rectangle(res, (x, y), (x + w, y + h), color=color, thickness=1)
@@ -90,7 +95,7 @@ def prepare_trg_for_image(image_metainfo):
         image_metainfo['label_file_path'],
         build_label_by_rects(
             image_metainfo,
-            shape=TARGET_SIZE or orig_size
+            shape=config.TARGET_SIZE or orig_size
         )
     )
 
@@ -101,9 +106,9 @@ def prepare_trg_for_image(image_metainfo):
 
 
 def prepare_trg():
-    create_path(BINS_FOLDER)
-    create_path(LABELS_FOLDER)
-    create_path(JSONS_FOLDER)
+    create_path(config.BINS_FOLDER)
+    create_path(config.LABELS_FOLDER)
+    create_path(config.JSONS_FOLDER)
 
     images_metainfo = cache_and_get_images_metainfo()
     for metainfo in images_metainfo.values():

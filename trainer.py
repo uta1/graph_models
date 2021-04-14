@@ -15,7 +15,7 @@ def generate_data(images_metainfo):
             labels = cv2.imread(image_metainfo['label_file_path'])[:, :, 0]
             batch_y.append(np.expand_dims(labels, axis=-1))
 
-            if len(batch_x) == BATCH_SIZE:
+            if len(batch_x) == config.BATCH_SIZE:
                 yield np.array(batch_x), np.array(batch_y)
                 batch_x = []
                 batch_y = []
@@ -26,10 +26,11 @@ def generate_data(images_metainfo):
 
 
 def train():
-    model = unet(input_size=(*TARGET_SIZE, 1))
+    model = unet(input_size=(*config.TARGET_SIZE, 1))
     images_metainfo = cache_and_get_images_metainfo()
 
-    steps_per_epoch = len(images_metainfo) / BATCH_SIZE + (0 if len(images_metainfo) % BATCH_SIZE == 0 else 1)
+    steps_per_epoch = len(images_metainfo) / config.BATCH_SIZE + \
+                      (0 if len(images_metainfo) % config.BATCH_SIZE == 0 else 1)
     model.fit_generator(
         generate_data(images_metainfo),
         steps_per_epoch=steps_per_epoch
