@@ -18,7 +18,6 @@ JSONS_FOLDER = TRG_FOLDER + MODE + '_jsons/'
 # Labels creation
 LABELS_PATH = SRC_FOLDER + LABELS
 CACHED_LABELS_PATH = JSONS_FOLDER + 'cached_' + LABELS
-CACHED_ID_BY_FILE_NAME_PATH = JSONS_FOLDER + 'cached_id_by_file_name_' + LABELS
 
 # Rects prediction
 MIN_OBJECT_WIDTH = 4
@@ -29,7 +28,6 @@ RECTS_DILATION = (7, 6)
 TARGET_SIZE = (512, 512)  # None or tuple
 BINARIZE = True  # Bool
 BBOXES_TO_PLOT = []  # elements: ['predicted' | 'labeled']
-FORCE_CACHE_CHECKING = True  # Bool
 SAVE_JSONS = False
 
 # Learning

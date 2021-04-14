@@ -10,10 +10,10 @@ def get_rects_by_contours(contours):
     return [list(rect) for rect in rects if rect[-2] >= MIN_OBJECT_WIDTH and rect[-1] >= MIN_OBJECT_HEIGHT]
 
 
-def extract_rects_from_label(image_name, cached_labels, image_id_by_file_name):
+def extract_rects_from_metainfo(image_metainfo):
     return [
         ann['bbox']
-        for ann in cached_labels[image_id_by_file_name[image_name]]['annotations']
+        for ann in image_metainfo['annotations']
     ]
 
 
@@ -54,23 +54,16 @@ def save_image_json(image_name, predicted_rects):
         )
 
 
-def build_label_by_rects(image_name, cached_labels, image_id_by_file_name, shape):
+def build_label_by_rects(image_metainfo, shape):
     res = np.zeros(shape, dtype=np.int32)
-    for ann in cached_labels[image_id_by_file_name[image_name]]['annotations']:
+    for ann in image_metainfo['annotations']:
         x, y, w, h = ann['bbox']
         res[y:y + h, x:x + w] = ann['category_id']
     return res
 
 
-def prepare_trg_for_image(
-        image_name,
-        cached_labels,
-        image_id_by_file_name,
-):
-    if not image_name.startswith('PMC'):
-        return
-
-    original = cv2.imread(FOLDER + image_name)
+def prepare_trg_for_image(image_metainfo):
+    original = cv2.imread(image_metainfo['file_path'])
     orig_size = original.shape[:2]
 
     bined = prepare_bined(original)
@@ -78,11 +71,11 @@ def prepare_trg_for_image(
         orig_size,
         predict_rects(bined)
     )
-    # already resized in get_labels_indices()
-    labeled_rects = extract_rects_from_label(image_name, cached_labels, image_id_by_file_name)
+    # already resized in get_images_metainfo()
+    labeled_rects = extract_rects_from_metainfo(image_metainfo)
 
     if SAVE_JSONS:
-        save_image_json(image_name, predicted_rects)
+        save_image_json(image_metainfo, predicted_rects)
 
     res = resize(bined if BINARIZE else original)
 
@@ -94,18 +87,15 @@ def prepare_trg_for_image(
             cv2.rectangle(res, (x, y), (x + w, y + h), color=color, thickness=1)
 
     cv2.imwrite(
-        image_name_to_label_path(image_name),
+        image_metainfo['label_file_path'],
         build_label_by_rects(
-            image_name,
-            cached_labels,
-            image_id_by_file_name,
+            image_metainfo,
             shape=TARGET_SIZE or orig_size
         )
     )
 
-    bin_file_name = image_name_to_bin_path(image_name)
-    cv2.imwrite(bin_file_name, res)
-    print(res.shape, bin_file_name)
+    cv2.imwrite(image_metainfo['bin_file_path'], res)
+    print(res.shape, image_metainfo['bin_file_path'])
 
     return res
 
@@ -115,13 +105,6 @@ def prepare_trg():
     create_path(LABELS_FOLDER)
     create_path(JSONS_FOLDER)
 
-    cached_labels, image_id_by_file_name = (None, None)
-    if BBOXES_TO_PLOT == 'labeled' or FORCE_CACHE_CHECKING:
-        cached_labels, image_id_by_file_name = cache_and_get_indices()
-
-    for image_name in get_file_names(FOLDER):
-        prepare_trg_for_image(
-            image_name,
-            cached_labels,
-            image_id_by_file_name,
-        )
+    images_metainfo = cache_and_get_images_metainfo()
+    for metainfo in images_metainfo.values():
+        prepare_trg_for_image(metainfo)

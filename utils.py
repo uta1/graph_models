@@ -45,57 +45,52 @@ def create_path(path):
         create_folder_if_not_exists(cur_path)
 
 
-def cache_and_get_indices():
-    if os.path.exists(CACHED_LABELS_PATH) and os.path.exists(CACHED_ID_BY_FILE_NAME_PATH):
+def cache_and_get_images_metainfo():
+    if os.path.exists(CACHED_LABELS_PATH):
         with open(CACHED_LABELS_PATH, 'r') as fp:
-            cached_labels = {
+            images_metainfo = {
                 int(image_id): value
                 for image_id, value in json.load(fp).items()
             }
-        with open(CACHED_ID_BY_FILE_NAME_PATH, 'r') as fp:
-            image_id_by_file_name = json.load(fp)
     else:
-        cached_labels, image_id_by_file_name = get_labels_indices()
+        images_metainfo = get_images_metainfo()
         with open(CACHED_LABELS_PATH, 'w') as fp:
-            json.dump(cached_labels, fp=fp)
-        with open(CACHED_ID_BY_FILE_NAME_PATH, 'w') as fp:
-            json.dump(image_id_by_file_name, fp=fp)
-    return cached_labels, image_id_by_file_name
+            json.dump(images_metainfo, fp=fp)
+    return images_metainfo
 
 
-def get_labels_indices():
-    labels = get_labels_full()
-    cached_labels = {}
-    image_id_by_file_name = {}
+def get_images_metainfo():
+    labels = get_images_fullinfo()
+    images_metainfo = {}
     dims_by_image_id = {}
     for image in labels['images']:
-        cached_labels[image['id']] = {
-            'file_name': FOLDER + image['file_name'],
-            'bin_file_name': image_name_to_bin_path(image['file_name']),
-            'labels_file_name': image_name_to_label_path(image['file_name']),
-            'json_labels_file_name': image_name_to_json_path(image['file_name']),
+        images_metainfo[image['id']] = {
+            'file_path': FOLDER + image['file_name'],
+            'bin_file_path': image_name_to_bin_path(image['file_name']),
+            'label_file_path': image_name_to_label_path(image['file_name']),
+            'json_label_file_path': image_name_to_json_path(image['file_name']),
             'annotations': []
         }
         dims_by_image_id[image['id']] = {
             'width': image['width'],
             'height': image['height']
         }
-        image_id_by_file_name[image['file_name']] = image['id']
 
     for ann in labels['annotations']:
+        image_id = ann['image_id']
         coef_width, coef_height = get_resizing_coefs(
-            dims_by_image_id[ann['image_id']]['width'],
-            dims_by_image_id[ann['image_id']]['height']
+            dims_by_image_id[image_id]['width'],
+            dims_by_image_id[image_id]['height']
         )
-        cached_labels[ann['image_id']]['annotations'].append(
+        images_metainfo[image_id]['annotations'].append(
             {
                 'bbox': resize_rect(coef_width, coef_height, ann['bbox']),
                 'category_id': ann['category_id']
             }
         )
-    return cached_labels, image_id_by_file_name
+    return images_metainfo
 
 
-def get_labels_full():
+def get_images_fullinfo():
     with open(LABELS_PATH, 'r') as fp:
         return json.load(fp)
