@@ -1,4 +1,5 @@
 from lib_imports import *
+
 from config import *
 
 
@@ -40,6 +41,7 @@ def resize_rects(orig_size, rects):
 
     coef_width, coef_height = get_resizing_coefs(orig_size[1], orig_size[0])
     return [resize_rect(coef_width, coef_height, rect) for rect in rects]
+
 
 def get_resizing_coefs(orig_width, orig_height):
     if not config.TARGET_SIZE:
