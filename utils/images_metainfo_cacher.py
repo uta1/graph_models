@@ -1,7 +1,7 @@
 from lib_imports import *
 
 from config import *
-from geometry import *
+from utils.geometry import *
 from utils.filesystem_helper import *
 
 
