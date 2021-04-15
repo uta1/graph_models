@@ -14,7 +14,7 @@ def generate_data(images_metainfo):
             bined = cv2.imread(image_metainfo['bin_file_path'])[:, :, 0]
             batch_x.append(np.expand_dims(bined, axis=-1))
             labels = cv2.imread(image_metainfo['label_file_path'])[:, :, 0]
-            batch_y.append(np.expand_dims(labels, axis=-1))
+            batch_y.append(np.expand_dims(labels[:16,:16], axis=-1))
 
             if len(batch_x) == config.BATCH_SIZE:
                 yield np.array(batch_x), np.array(batch_y)

@@ -52,7 +52,31 @@ def unet(pretrained_weights=None, input_size=(256, 256, 1)):
     # conv10 = Conv2D(1, 1, activation='sigmoid')(conv9)
     conv9 = Conv2D(6, 3, activation='softmax', padding='same', kernel_initializer='he_normal')(conv9)
 
-    model = Model(input=inputs, output=conv9)
+    rois = tf.convert_to_tensor(
+        [[[10, 10, 10, 10], [10, 10, 10, 10]]],
+        dtype=tf.float32
+    )
+    outputs = []
+    for roi_idx in range(len(rois[0])):
+
+        x = rois[0, roi_idx, 0]
+        y = rois[0, roi_idx, 1]
+        w = rois[0, roi_idx, 2]
+        h = rois[0, roi_idx, 3]
+
+        x = K.cast(x, 'int32')
+        y = K.cast(y, 'int32')
+        w = K.cast(w, 'int32')
+        h = K.cast(h, 'int32')
+
+        roi = Lambda(lambda arg: arg[:, y:y + h, x:x + w, :], name="Lambda_" + str(roi_idx))(conv9)
+        resized_roi = Lambda(lambda image: tf.image.resize(image, (16, 16)), name="Lambda2_" + str(roi_idx))(roi)
+
+        outputs.append(resized_roi)
+
+    concated_rois = Concatenate(axis=0, name='concat_rois')(outputs)
+
+    model = Model(inputs=inputs, outputs=concated_rois)
 
     model.trainable = config.is_model_trainable()
 

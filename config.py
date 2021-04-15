@@ -6,7 +6,7 @@ from utils.platform_based_params import workplace_dir
 
 class Config:
     # Main
-    MODULES = ['prepare_samples', 'prepare_trg', 'train']
+    MODULES = ['train']
     MODE = 'samples'
 
     # Names of directories containing data
