@@ -1,7 +1,7 @@
 from lib_imports import *
 
 from config import *
-from utils import *
+from utils.filesystem_helper import *
 
 ARCHIVENAME = 'examples.tar.gz'
 URL = 'https://dax-cdn.cdn.appdomain.cloud/dax-publaynet/1.0.0/' + ARCHIVENAME

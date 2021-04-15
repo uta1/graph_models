@@ -2,7 +2,7 @@ from lib_imports import *
 
 from nets import *
 from config import *
-from utils import *
+from utils.images_metainfo_cacher import *
 
 
 def generate_data(images_metainfo):

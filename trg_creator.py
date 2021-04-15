@@ -1,8 +1,9 @@
 from lib_imports import *
 
-from geometry import *
 from config import *
-from utils import *
+from utils.geometry import *
+from utils.filesystem_helper import *
+from utils.images_metainfo_cacher import *
 
 
 def get_rects_by_contours(contours):

@@ -1,6 +1,7 @@
 from lib_imports import *
 
 from config import *
+from logger import *
 
 
 def unet(pretrained_weights=None, input_size=(256, 256, 1)):
@@ -59,7 +60,7 @@ def unet(pretrained_weights=None, input_size=(256, 256, 1)):
         metrics=['sparse_categorical_crossentropy']
     )
 
-    model.summary()
+    model.summary(print_fn=lambda x: logger.log(x))
 
     if (pretrained_weights):
         model.load_weights(pretrained_weights)
