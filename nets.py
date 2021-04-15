@@ -54,10 +54,12 @@ def unet(pretrained_weights=None, input_size=(256, 256, 1)):
 
     model = Model(input=inputs, output=conv9)
 
+    model.trainable = config.is_model_trainable()
+
     model.compile(
         optimizer=Adam(lr=config.LEARNING_RATE),
         loss='sparse_categorical_crossentropy',
-        metrics=['sparse_categorical_crossentropy']
+        metrics=['sparse_categorical_accuracy', IOUScore(name='iou_score')]
     )
 
     model.summary(print_fn=lambda x: logger.log(x))
