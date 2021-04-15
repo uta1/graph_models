@@ -1,6 +1,18 @@
 from lib_imports import *
 
 
+def _folders_delim():
+    if platform.system() == 'Linux':
+        return '/'
+    return '\\'
+
+
+def _workplace_dir():
+    if platform.system() == 'Linux':
+        return '../'
+    raise
+
+
 class Config:
     # Main
     MODULES = ['prepare_samples', 'prepare_trg', 'train']
@@ -9,6 +21,11 @@ class Config:
     # Names of directories containing data
     SRC_FOLDER_NAME = 'src'
     TRG_FOLDER_NAME = 'trg'
+
+    # Logs settings
+    WEIGHTS_FOLDER_NAME = 'weights'
+    LOGS_FOLDER_NAME = 'logs'
+    LOG_FILE_NAME_TEMPLATE = 'log_{}_{}_{}.log'  # 'log_mode_lr_timestamp.log'
 
     # Rects prediction
     MIN_OBJECT_WIDTH = 4
@@ -29,11 +46,11 @@ class Config:
 
     @property
     def SRC_FOLDER_PATH(self):
-        return self._workplace_dir + self.SRC_FOLDER_NAME + self._folders_delim
+        return _workplace_dir() + self.SRC_FOLDER_NAME + _folders_delim()
 
     @property
     def TRG_FOLDER_PATH(self):
-        return self._workplace_dir + self.TRG_FOLDER_NAME + self._folders_delim
+        return _workplace_dir() + self.TRG_FOLDER_NAME + _folders_delim()
 
     # Name of src-file containing metainfo
     # Available only for samples, train and val
@@ -50,21 +67,21 @@ class Config:
 
     @property
     def FOLDER(self):
-        return self.SRC_FOLDER_PATH + self.MODE + self._folders_delim
+        return self.SRC_FOLDER_PATH + self.MODE + _folders_delim()
 
     # Directories of labels and target images
 
     @property
     def BINS_FOLDER(self):
-        return self.TRG_FOLDER_PATH + self.MODE + '_bins' + self._folders_delim
+        return self.TRG_FOLDER_PATH + self.MODE + '_bins' + _folders_delim()
 
     @property
     def LABELS_FOLDER(self):
-        return self.TRG_FOLDER_PATH + self.MODE + '_labels' + self._folders_delim
+        return self.TRG_FOLDER_PATH + self.MODE + '_labels' + _folders_delim()
 
     @property
     def JSONS_FOLDER(self):
-        return self.TRG_FOLDER_PATH + self.MODE + '_jsons' + self._folders_delim
+        return self.TRG_FOLDER_PATH + self.MODE + '_jsons' + _folders_delim()
 
     # Path of trg-file containing metainfo redesigned for our needs
 
@@ -72,17 +89,21 @@ class Config:
     def CACHED_LABELS_PATH(self):
         return self.JSONS_FOLDER + 'cached_' + self.LABELS
 
-    @property
-    def _folders_delim(self):
-        if platform.system() == 'Linux':
-            return '/'
-        return '\\'
+    # Logs properties
 
     @property
-    def _workplace_dir(self):
-        if platform.system() == 'Linux':
-            return '../'
-        raise
+    def LOGS_FOLDER_PATH(self):
+        return _workplace_dir() + self.LOGS_FOLDER_NAME + _folders_delim()
+
+    def log_file_path_snapshot(self):
+        return self.LOGS_FOLDER_PATH + self.log_file_name_snapshot()
+
+    def log_file_name_snapshot(self):
+        return self.LOG_FILE_NAME_TEMPLATE.format(
+            self.MODE,
+            self.LEARNING_RATE,
+            time.strftime("%Y-%m-%d_%H:%M:%S", time.gmtime())
+        )
 
 
 config = Config()
