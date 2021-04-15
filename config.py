@@ -1,16 +1,7 @@
 from lib_imports import *
 
-
-def _folders_delim():
-    if platform.system() == 'Linux':
-        return '/'
-    return '\\'
-
-
-def _workplace_dir():
-    if platform.system() == 'Linux':
-        return '../'
-    raise
+from utils.platform_based_params import folders_delim
+from utils.platform_based_params import workplace_dir
 
 
 class Config:
@@ -46,11 +37,11 @@ class Config:
 
     @property
     def SRC_FOLDER_PATH(self):
-        return _workplace_dir() + self.SRC_FOLDER_NAME + _folders_delim()
+        return workplace_dir() + self.SRC_FOLDER_NAME + folders_delim()
 
     @property
     def TRG_FOLDER_PATH(self):
-        return _workplace_dir() + self.TRG_FOLDER_NAME + _folders_delim()
+        return workplace_dir() + self.TRG_FOLDER_NAME + folders_delim()
 
     # Name of src-file containing metainfo
     # Available only for samples, train and val
@@ -67,21 +58,21 @@ class Config:
 
     @property
     def FOLDER(self):
-        return self.SRC_FOLDER_PATH + self.MODE + _folders_delim()
+        return self.SRC_FOLDER_PATH + self.MODE + folders_delim()
 
     # Directories of labels and target images
 
     @property
     def BINS_FOLDER(self):
-        return self.TRG_FOLDER_PATH + self.MODE + '_bins' + _folders_delim()
+        return self.TRG_FOLDER_PATH + self.MODE + '_bins' + folders_delim()
 
     @property
     def LABELS_FOLDER(self):
-        return self.TRG_FOLDER_PATH + self.MODE + '_labels' + _folders_delim()
+        return self.TRG_FOLDER_PATH + self.MODE + '_labels' + folders_delim()
 
     @property
     def JSONS_FOLDER(self):
-        return self.TRG_FOLDER_PATH + self.MODE + '_jsons' + _folders_delim()
+        return self.TRG_FOLDER_PATH + self.MODE + '_jsons' + folders_delim()
 
     # Path of trg-file containing metainfo redesigned for our needs
 
@@ -93,7 +84,7 @@ class Config:
 
     @property
     def LOGS_FOLDER_PATH(self):
-        return _workplace_dir() + self.LOGS_FOLDER_NAME + _folders_delim()
+        return workplace_dir() + self.LOGS_FOLDER_NAME + folders_delim()
 
     def log_file_path_snapshot(self):
         return self.LOGS_FOLDER_PATH + self.log_file_name_snapshot()
