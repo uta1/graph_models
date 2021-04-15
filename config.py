@@ -13,8 +13,11 @@ class Config:
     SRC_FOLDER_NAME = 'src'
     TRG_FOLDER_NAME = 'trg'
 
-    # Logs settings
+    # Weights saving settings
     WEIGHTS_FOLDER_NAME = 'weights'
+    WEIGHTS_FILE_NAME_TEMPLATE = '{epoch:03d}_epoches.chpt'
+
+    # Logs settings
     LOGS_FOLDER_NAME = 'logs'
     LOG_FILE_NAME_TEMPLATE = 'log_{}_{}_{}.log'  # 'log_mode_lr_timestamp.log'
 
@@ -80,6 +83,16 @@ class Config:
     def CACHED_LABELS_PATH(self):
         return self.JSONS_FOLDER + 'cached_' + self.LABELS
 
+    # Weights properties
+
+    @property
+    def WEIGHTS_FOLDER_PATH(self):
+        return workplace_dir() + self.WEIGHTS_FOLDER_NAME + folders_delim()
+
+    @property
+    def WEIGHTS_FILE_PATH_TEMPLATE(self):
+        return self.WEIGHTS_FOLDER_PATH + self.WEIGHTS_FILE_NAME_TEMPLATE
+
     # Logs properties
 
     @property
@@ -95,6 +108,9 @@ class Config:
             self.LEARNING_RATE,
             time.strftime("%Y-%m-%d_%H:%M:%S", time.gmtime())
         )
+
+    def is_model_trainable(self):
+        return self.MODE in ['samples', 'train']
 
 
 config = Config()
