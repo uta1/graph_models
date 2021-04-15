@@ -3,7 +3,7 @@ from lib_imports import *
 
 class Config:
     # Main
-    MODULES = ['prepare_samples', 'prepare_trg']
+    MODULES = ['prepare_samples', 'prepare_trg', 'train']
     MODE = 'samples'
 
     # Names of directories containing data
@@ -23,6 +23,7 @@ class Config:
 
     # Learning
     BATCH_SIZE = 1
+    LEARNING_RATE = 1e-4
 
     # Paths of data
 

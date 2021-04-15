@@ -1,5 +1,7 @@
 from lib_imports import *
 
+from config import *
+
 
 def unet(pretrained_weights=None, input_size=(256, 256, 1)):
     inputs = Input(input_size)
@@ -44,12 +46,18 @@ def unet(pretrained_weights=None, input_size=(256, 256, 1)):
     merge9 = concatenate([conv1, up9], axis=3)
     conv9 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(merge9)
     conv9 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Conv2D(2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv10 = Conv2D(1, 1, activation='sigmoid')(conv9)
+    # Original is commented
+    # conv9 = Conv2D(2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
+    # conv10 = Conv2D(1, 1, activation='sigmoid')(conv9)
+    conv9 = Conv2D(6, 3, activation='softmax', padding='same', kernel_initializer='he_normal')(conv9)
 
-    model = Model(input=inputs, output=conv10)
+    model = Model(input=inputs, output=conv9)
 
-    model.compile(optimizer=Adam(lr=1e-4), loss='binary_crossentropy', metrics=['accuracy'])
+    model.compile(
+        optimizer=Adam(lr=config.LEARNING_RATE),
+        loss='sparse_categorical_crossentropy',
+        metrics=['sparse_categorical_crossentropy']
+    )
 
     model.summary()
 
