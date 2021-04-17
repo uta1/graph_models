@@ -1,5 +1,6 @@
 from lib_imports import *
 
+from utils.filesystem_helper import create_path
 from utils.platform_based_params import folders_delim
 from utils.platform_based_params import workplace_dir
 
@@ -14,8 +15,7 @@ class Config:
     TRG_FOLDER_NAME = 'trg'
 
     # Weights saving settings
-    UNET_WEIGHTS_FOLDER_NAME = 'unet_weights'
-    CLASSIFIER_WEIGHTS_FOLDER_NAME = 'classifier_weights'
+    WEIGHTS_FOLDER_NAME_TEMPLATE = '{}_weights'  # 'name_weights'
     WEIGHTS_FILE_NAME_TEMPLATE = '{epoch:03d}_epoches.chpt'
 
     # Logs settings
@@ -34,8 +34,6 @@ class Config:
     SAVE_JSONS = False
 
     # Learning
-    UNET_BATCH_SIZE = 1
-    CLASSIFIER_BATCH_SIZE = 16
     IMAGE_ELEM_EMBEDDING_SIZE = (16, 16, 6)
     LEARNING_RATE = 1e-4
 
@@ -86,24 +84,6 @@ class Config:
     def CACHED_LABELS_PATH(self):
         return self.JSONS_FOLDER + 'cached_' + self.LABELS
 
-    # Weights properties
-
-    @property
-    def UNET_WEIGHTS_FOLDER_PATH(self):
-        return workplace_dir() + self.UNET_WEIGHTS_FOLDER_NAME + folders_delim()
-
-    @property
-    def UNET_WEIGHTS_FILE_PATH_TEMPLATE(self):
-        return self.UNET_WEIGHTS_FOLDER_PATH + self.WEIGHTS_FILE_NAME_TEMPLATE
-
-    @property
-    def CLASSIFIER_WEIGHTS_FOLDER_PATH(self):
-        return workplace_dir() + self.CLASSIFIER_WEIGHTS_FOLDER_NAME + folders_delim()
-
-    @property
-    def CLASSIFIER_WEIGHTS_FILE_PATH_TEMPLATE(self):
-        return self.CLASSIFIER_WEIGHTS_FOLDER_PATH + self.WEIGHTS_FILE_NAME_TEMPLATE
-
     # Logs properties
 
     @property
@@ -125,3 +105,29 @@ class Config:
 
 
 config = Config()
+
+
+@dataclasses.dataclass
+class NetworkConfig:
+    NAME: str
+    BATCH_SIZE: int
+
+    @property
+    def WEIGHTS_FOLDER_PATH(self):
+        return workplace_dir() + config.WEIGHTS_FOLDER_NAME_TEMPLATE.format(self.NAME) + folders_delim()
+
+    @property
+    def WEIGHTS_FILE_PATH_TEMPLATE(self):
+        return self.WEIGHTS_FOLDER_PATH + config.WEIGHTS_FILE_NAME_TEMPLATE
+
+
+unet_config = NetworkConfig(
+    NAME='unet',
+    BATCH_SIZE=1,
+)
+
+
+classifier_config = NetworkConfig(
+    NAME='classifier',
+    BATCH_SIZE=16,
+)

@@ -15,7 +15,7 @@ def generate_data_unet(images_metainfo):
             batch_x.append(np_image_from_path(image_metainfo['bin_file_path']))
             batch_y.append(np_image_from_path(image_metainfo['label_file_path']))
 
-            if len(batch_x) == config.UNET_BATCH_SIZE:
+            if len(batch_x) == unet_config.BATCH_SIZE:
                 yield np.array(batch_x), np.array(batch_y)
                 batch_x = []
                 batch_y = []
@@ -45,7 +45,7 @@ def generate_data_node_classifier(images_metainfo, unet_model, graph):
                 )
                 batch_y.append(ann['category_id'])
 
-                if len(batch_x) == config.CLASSIFIER_BATCH_SIZE:
+                if len(batch_x) == classifier_config.BATCH_SIZE:
                     yield np.array(batch_x), np.array(batch_y)
                     batch_x = []
                     batch_y = []
@@ -100,16 +100,16 @@ def _len_annotations(images_metainfo):
 def fit_unet():
     model = unet(input_size=(*config.TARGET_SIZE, 1))
     images_metainfo = cache_and_get_images_metainfo()
-    create_path(config.UNET_WEIGHTS_FOLDER_PATH)
+    create_weights_folder(unet_config)
 
     model.fit_generator(
         generate_data_unet(images_metainfo),
-        steps_per_epoch=_steps_per_epoch(len(images_metainfo), config.UNET_BATCH_SIZE),
+        steps_per_epoch=_steps_per_epoch(len(images_metainfo), unet_config.BATCH_SIZE),
         epochs=3000,
         callbacks=[
             LoggerCallback(),
             ModelCheckpoint(
-                filepath=config.UNET_WEIGHTS_FILE_PATH_TEMPLATE,
+                filepath=unet_config.WEIGHTS_FILE_PATH_TEMPLATE,
                 save_weights_only=False
             )
         ],
@@ -121,16 +121,16 @@ def fit_classifier():
     graph = tf.get_default_graph()
     unet_model = unet(input_size=(*config.TARGET_SIZE, 1))
     images_metainfo = cache_and_get_images_metainfo()
-    create_path(config.CLASSIFIER_WEIGHTS_FOLDER_PATH)
+    create_weights_folder(classifier_config)
 
     model.fit_generator(
         generate_data_node_classifier(images_metainfo, unet_model, graph),
-        steps_per_epoch=_steps_per_epoch(_len_annotations(images_metainfo), config.CLASSIFIER_BATCH_SIZE),
+        steps_per_epoch=_steps_per_epoch(_len_annotations(images_metainfo), classifier_config.BATCH_SIZE),
         epochs=3000,
         callbacks=[
             LoggerCallback(),
             ModelCheckpoint(
-                filepath=config.CLASSIFIER_WEIGHTS_FILE_PATH_TEMPLATE,
+                filepath=classifier_config.WEIGHTS_FILE_PATH_TEMPLATE,
                 save_weights_only=False
             )
         ],

@@ -1,4 +1,5 @@
 import cv2
+import dataclasses
 import json
 import math
 import numpy as np
