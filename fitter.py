@@ -1,8 +1,9 @@
 from lib_imports import *
 
-from nets import *
-from config import *
-from utils.filesystem_helper import create_path
+from config import config, unet_config, classifier_config
+from nets import unet, classifier
+from logger import logger
+from utils.filesystem_helper import create_path, create_weights_folder
 from utils.cv2_utils import np_image_from_path, np_monobatch_from_path
 from utils.images_metainfo_cacher import cache_and_get_images_metainfo
 
@@ -144,6 +145,7 @@ def _fit_classifier(images_metainfo):
         classifier_config,
         _len_annotations,
     )
+
 
 def fit():
     images_metainfo = cache_and_get_images_metainfo()
