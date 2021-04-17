@@ -70,7 +70,7 @@ def unet(pretrained_weights=None, input_size=(256, 256, 1)):
     return model
 
 
-def node_classifier(pretrained_weights=None, input_size=(256, 256, 1)):
+def classifier(pretrained_weights=None, input_size=(256, 256, 1)):
     inputs = Input(input_size)
 
     flatten = Flatten()(inputs)

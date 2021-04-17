@@ -25,7 +25,7 @@ def generate_data_unet(images_metainfo):
     return
 
 
-def generate_data_node_classifier(images_metainfo, unet_model, graph):
+def generate_data_classifier(images_metainfo, unet_model, graph):
     while True:
         batch_x = []
         batch_y = []
@@ -117,14 +117,14 @@ def fit_unet():
 
 
 def fit_classifier():
-    model = node_classifier(input_size=(*config.IMAGE_ELEM_EMBEDDING_SIZE, ))
+    model = classifier(input_size=(*config.IMAGE_ELEM_EMBEDDING_SIZE, ))
     graph = tf.get_default_graph()
     unet_model = unet(input_size=(*config.TARGET_SIZE, 1))
     images_metainfo = cache_and_get_images_metainfo()
     create_weights_folder(classifier_config)
 
     model.fit_generator(
-        generate_data_node_classifier(images_metainfo, unet_model, graph),
+        generate_data_classifier(images_metainfo, unet_model, graph),
         steps_per_epoch=_steps_per_epoch(_len_annotations(images_metainfo), classifier_config.BATCH_SIZE),
         epochs=3000,
         callbacks=[
