@@ -1,12 +1,14 @@
 from lib_imports import *
 
+from utils.filesystem_helper import create_path
 from utils.platform_based_params import folders_delim
 from utils.platform_based_params import workplace_dir
 
 
 class Config:
     # Main
-    MODULES = ['prepare_samples', 'prepare_trg', 'train']
+    MODULES = ['prepare_samples', 'prepare_trg', 'fit']
+    MODEL = 'classifier'
     MODE = 'samples'
 
     # Names of directories containing data
@@ -14,7 +16,7 @@ class Config:
     TRG_FOLDER_NAME = 'trg'
 
     # Weights saving settings
-    WEIGHTS_FOLDER_NAME = 'weights'
+    WEIGHTS_FOLDER_NAME_TEMPLATE = '{}_weights'  # 'name_weights'
     WEIGHTS_FILE_NAME_TEMPLATE = '{epoch:03d}_epoches.chpt'
 
     # Logs settings
@@ -33,7 +35,7 @@ class Config:
     SAVE_JSONS = False
 
     # Learning
-    BATCH_SIZE = 1
+    IMAGE_ELEM_EMBEDDING_SIZE = (16, 16, 6)
     LEARNING_RATE = 1e-4
 
     # Paths of data
@@ -83,16 +85,6 @@ class Config:
     def CACHED_LABELS_PATH(self):
         return self.JSONS_FOLDER + 'cached_' + self.LABELS
 
-    # Weights properties
-
-    @property
-    def WEIGHTS_FOLDER_PATH(self):
-        return workplace_dir() + self.WEIGHTS_FOLDER_NAME + folders_delim()
-
-    @property
-    def WEIGHTS_FILE_PATH_TEMPLATE(self):
-        return self.WEIGHTS_FOLDER_PATH + self.WEIGHTS_FILE_NAME_TEMPLATE
-
     # Logs properties
 
     @property
@@ -109,8 +101,34 @@ class Config:
             time.strftime("%Y-%m-%d_%H:%M:%S", time.gmtime())
         )
 
-    def is_model_trainable(self):
+    def is_mode_trainable(self):
         return self.MODE in ['samples', 'train']
 
 
 config = Config()
+
+
+@dataclasses.dataclass
+class NetworkConfig:
+    NAME: str
+    BATCH_SIZE: int
+
+    @property
+    def WEIGHTS_FOLDER_PATH(self):
+        return workplace_dir() + config.WEIGHTS_FOLDER_NAME_TEMPLATE.format(self.NAME) + folders_delim()
+
+    @property
+    def WEIGHTS_FILE_PATH_TEMPLATE(self):
+        return self.WEIGHTS_FOLDER_PATH + config.WEIGHTS_FILE_NAME_TEMPLATE
+
+
+unet_config = NetworkConfig(
+    NAME='unet',
+    BATCH_SIZE=1,
+)
+
+
+classifier_config = NetworkConfig(
+    NAME='classifier',
+    BATCH_SIZE=16,
+)

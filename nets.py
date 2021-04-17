@@ -50,16 +50,42 @@ def unet(pretrained_weights=None, input_size=(256, 256, 1)):
     # Original is commented
     # conv9 = Conv2D(2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
     # conv10 = Conv2D(1, 1, activation='sigmoid')(conv9)
-    conv9 = Conv2D(6, 3, activation='softmax', padding='same', kernel_initializer='he_normal')(conv9)
+    conv9 = Conv2D(config.IMAGE_ELEM_EMBEDDING_SIZE[-1], 3, activation='softmax', padding='same', kernel_initializer='he_normal')(conv9)
 
-    model = Model(input=inputs, output=conv9)
+    model = Model(inputs=inputs, outputs=conv9)
 
-    model.trainable = config.is_model_trainable()
+    model.trainable = config.is_mode_trainable() and config.MODEL == 'unet'
 
     model.compile(
         optimizer=Adam(lr=config.LEARNING_RATE),
         loss='sparse_categorical_crossentropy',
         metrics=['sparse_categorical_accuracy', IOUScore(name='iou_score')]
+    )
+
+    model.summary(print_fn=lambda x: logger.log(x))
+
+    if (pretrained_weights):
+        model.load_weights(pretrained_weights)
+
+    return model
+
+
+def classifier(pretrained_weights=None, input_size=(256, 256, 1)):
+    inputs = Input(input_size)
+
+    flatten = Flatten()(inputs)
+
+    dense_0 = Dense(512, activation='relu')(flatten)
+    dense_1 = Dense(6, activation='softmax')(dense_0)
+
+    model = Model(inputs=inputs, outputs=dense_1)
+
+    model.trainable = config.is_mode_trainable()
+
+    model.compile(
+        optimizer=Adam(lr=config.LEARNING_RATE),
+        loss='sparse_categorical_crossentropy',
+        metrics=['sparse_categorical_accuracy']
     )
 
     model.summary(print_fn=lambda x: logger.log(x))

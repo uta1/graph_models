@@ -46,3 +46,6 @@ def create_path(path):
     for folder in folders:
         cur_path += folder + '/'
         create_folder_if_not_exists(cur_path)
+
+def create_weights_folder(network_config):
+    create_path(network_config.WEIGHTS_FOLDER_PATH)
