@@ -1,7 +1,7 @@
 from lib_imports import *
 
 from config import config
-from utils.geometry import *
+from utils.geometry import resize_rect, get_resizing_coefs
 from utils.filesystem_helper import (
     image_name_to_path,
     image_name_to_bin_path,
