@@ -7,11 +7,14 @@ class Config:
     # Main
     MODULES = ['prepare_samples', 'prepare_trg', 'fit']
     MODEL = 'classifier'
-    MODE = 'samples'
 
     # Names of directories containing data
-    SRC_FOLDER_NAME = 'src'
+    SRC_FOLDER_NAME = 'src'  # contains train, val, test
     TRG_FOLDER_NAME = 'trg'
+
+    TRAIN_FOLDER_NAME = 'samples'
+    VAL_FOLDER_NAME = 'val'
+    TEST_FOLDER_NAME = 'samples'
 
     # Weights saving settings
     WEIGHTS_FOLDER_NAME_TEMPLATE = '{}_weights'  # 'name_weights'
@@ -19,7 +22,7 @@ class Config:
 
     # Logs settings
     LOGS_FOLDER_NAME = 'logs'
-    LOG_FILE_NAME_TEMPLATE = 'log_{}_{}_{}_{}.log'  # 'log_timestamp_mode_model_lr.log'
+    LOG_FILE_NAME_TEMPLATE = 'log_{}_{}_{}.log'  # 'log_timestamp_model_lr.log'
 
     # Rects prediction
     MIN_OBJECT_WIDTH = 4
@@ -27,10 +30,10 @@ class Config:
     RECTS_DILATION = (7, 6)
 
     # Trg-creator settings
+    MODES_TO_CREATE_TRG = ['train', 'val']
     TARGET_SIZE = (512, 512)  # None or tuple
     BINARIZE = True  # Bool
     BBOXES_TO_PLOT = []  # elements: 'predicted', 'labeled'
-    SAVE_JSONS = False
 
     # Learning
     IMAGE_ELEM_EMBEDDING_SIZE = (16, 16, 6)
@@ -49,39 +52,32 @@ class Config:
     # Name of src-file containing metainfo
     # Available only for samples, train and val
 
-    @property
-    def LABELS(self):
-        return self.MODE + '.json'
+    def labels_file_name(self, mode):
+        return self._actual_folder_name(mode) + '.json'
 
-    @property
-    def LABELS_PATH(self):
-        return self.SRC_FOLDER_PATH + self.LABELS
+    def labels_file_path(self, mode):
+        return self.SRC_FOLDER_PATH + self.labels_file_name(mode)
 
     # Directory of dataset tagged by mode
 
-    @property
-    def FOLDER(self):
-        return self.SRC_FOLDER_PATH + self.MODE + folders_delim()
+    def folder_path(self, mode):
+        return self.SRC_FOLDER_PATH + self._actual_folder_name(mode) + folders_delim()
 
     # Directories of labels and target images
 
-    @property
-    def BINS_FOLDER(self):
-        return self.TRG_FOLDER_PATH + self.MODE + '_bins' + folders_delim()
+    def bins_folder_path(self, mode):
+        return self.TRG_FOLDER_PATH + self._actual_folder_name(mode) + '_bins' + folders_delim()
 
-    @property
-    def LABELS_FOLDER(self):
-        return self.TRG_FOLDER_PATH + self.MODE + '_labels' + folders_delim()
+    def labels_folder_path(self, mode):
+        return self.TRG_FOLDER_PATH + self._actual_folder_name(mode) + '_labels' + folders_delim()
 
-    @property
-    def JSONS_FOLDER(self):
-        return self.TRG_FOLDER_PATH + self.MODE + '_jsons' + folders_delim()
+    def jsons_folder_path(self, mode):
+        return self.TRG_FOLDER_PATH + self._actual_folder_name(mode) + '_jsons' + folders_delim()
 
     # Path of trg-file containing metainfo redesigned for our needs
 
-    @property
-    def CACHED_LABELS_PATH(self):
-        return self.JSONS_FOLDER + 'cached_' + self.LABELS
+    def cached_labels_path(self, mode):
+        return self.jsons_folder_path(mode) + 'cached_' + self.labels_file_name(mode)
 
     # Logs properties
 
@@ -90,18 +86,24 @@ class Config:
         return workplace_dir() + self.LOGS_FOLDER_NAME + folders_delim()
 
     def log_file_path_snapshot(self):
-        return self.LOGS_FOLDER_PATH + self.log_file_name_snapshot()
+        return self.LOGS_FOLDER_PATH + self._log_file_name_snapshot()
 
-    def log_file_name_snapshot(self):
+    def _log_file_name_snapshot(self):
         return self.LOG_FILE_NAME_TEMPLATE.format(
             time.strftime("%Y-%m-%d_%H:%M:%S", time.gmtime()),
-            self.MODE,
             self.MODEL,
             self.LEARNING_RATE
         )
 
-    def is_mode_trainable(self):
-        return self.MODE in ['samples', 'train']
+    # Private methods
+
+    def _actual_folder_name(self, mode):
+        if mode == 'train':
+            return self.TRAIN_FOLDER_NAME
+        if mode == 'val':
+            return self.VAL_FOLDER_NAME
+        if mode == 'test':
+            return self.TEST_FOLDER_NAME
 
 
 config = Config()
