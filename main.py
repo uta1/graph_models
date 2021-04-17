@@ -2,7 +2,7 @@ from lib_imports import *
 
 from samples_maker import *
 from config import *
-from trainer import *
+from fitter import *
 from trg_creator import *
 
 if __name__ == '__main__':
@@ -12,5 +12,8 @@ if __name__ == '__main__':
     if 'prepare_trg' in config.MODULES:
         prepare_trg()
 
-    if 'train' in config.MODULES:
-        train()
+    if 'fit_unet' in config.MODULES:
+        fit_unet()
+
+    if 'fit_classifier' in config.MODULES:
+        fit_classifier()

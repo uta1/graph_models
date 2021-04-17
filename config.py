@@ -6,7 +6,7 @@ from utils.platform_based_params import workplace_dir
 
 class Config:
     # Main
-    MODULES = ['train']
+    MODULES = ['prepare_samples', 'prepare_trg', 'fit_classifier']
     MODE = 'samples'
 
     # Names of directories containing data
@@ -14,7 +14,8 @@ class Config:
     TRG_FOLDER_NAME = 'trg'
 
     # Weights saving settings
-    WEIGHTS_FOLDER_NAME = 'weights'
+    UNET_WEIGHTS_FOLDER_NAME = 'unet_weights'
+    CLASSIFIER_WEIGHTS_FOLDER_NAME = 'classifier_weights'
     WEIGHTS_FILE_NAME_TEMPLATE = '{epoch:03d}_epoches.chpt'
 
     # Logs settings
@@ -33,7 +34,9 @@ class Config:
     SAVE_JSONS = False
 
     # Learning
-    BATCH_SIZE = 1
+    UNET_BATCH_SIZE = 1
+    CLASSIFIER_BATCH_SIZE = 16
+    IMAGE_ELEM_EMBEDDING_SIZE = (16, 16, 6)
     LEARNING_RATE = 1e-4
 
     # Paths of data
@@ -86,12 +89,20 @@ class Config:
     # Weights properties
 
     @property
-    def WEIGHTS_FOLDER_PATH(self):
-        return workplace_dir() + self.WEIGHTS_FOLDER_NAME + folders_delim()
+    def UNET_WEIGHTS_FOLDER_PATH(self):
+        return workplace_dir() + self.UNET_WEIGHTS_FOLDER_NAME + folders_delim()
 
     @property
-    def WEIGHTS_FILE_PATH_TEMPLATE(self):
-        return self.WEIGHTS_FOLDER_PATH + self.WEIGHTS_FILE_NAME_TEMPLATE
+    def UNET_WEIGHTS_FILE_PATH_TEMPLATE(self):
+        return self.UNET_WEIGHTS_FOLDER_PATH + self.WEIGHTS_FILE_NAME_TEMPLATE
+
+    @property
+    def CLASSIFIER_WEIGHTS_FOLDER_PATH(self):
+        return workplace_dir() + self.CLASSIFIER_WEIGHTS_FOLDER_NAME + folders_delim()
+
+    @property
+    def CLASSIFIER_WEIGHTS_FILE_PATH_TEMPLATE(self):
+        return self.CLASSIFIER_WEIGHTS_FOLDER_PATH + self.WEIGHTS_FILE_NAME_TEMPLATE
 
     # Logs properties
 

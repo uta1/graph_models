@@ -50,33 +50,9 @@ def unet(pretrained_weights=None, input_size=(256, 256, 1)):
     # Original is commented
     # conv9 = Conv2D(2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
     # conv10 = Conv2D(1, 1, activation='sigmoid')(conv9)
-    conv9 = Conv2D(6, 3, activation='softmax', padding='same', kernel_initializer='he_normal')(conv9)
+    conv9 = Conv2D(config.IMAGE_ELEM_EMBEDDING_SIZE[-1], 3, activation='softmax', padding='same', kernel_initializer='he_normal')(conv9)
 
-    rois = tf.convert_to_tensor(
-        [[[10, 10, 10, 10], [10, 10, 10, 10]]],
-        dtype=tf.float32
-    )
-    outputs = []
-    for roi_idx in range(len(rois[0])):
-
-        x = rois[0, roi_idx, 0]
-        y = rois[0, roi_idx, 1]
-        w = rois[0, roi_idx, 2]
-        h = rois[0, roi_idx, 3]
-
-        x = K.cast(x, 'int32')
-        y = K.cast(y, 'int32')
-        w = K.cast(w, 'int32')
-        h = K.cast(h, 'int32')
-
-        roi = Lambda(lambda arg: arg[:, y:y + h, x:x + w, :], name="Lambda_" + str(roi_idx))(conv9)
-        resized_roi = Lambda(lambda image: tf.image.resize(image, (16, 16)), name="Lambda2_" + str(roi_idx))(roi)
-
-        outputs.append(resized_roi)
-
-    concated_rois = Concatenate(axis=0, name='concat_rois')(outputs)
-
-    model = Model(inputs=inputs, outputs=concated_rois)
+    model = Model(inputs=inputs, outputs=conv9)
 
     model.trainable = config.is_model_trainable()
 
@@ -84,6 +60,32 @@ def unet(pretrained_weights=None, input_size=(256, 256, 1)):
         optimizer=Adam(lr=config.LEARNING_RATE),
         loss='sparse_categorical_crossentropy',
         metrics=['sparse_categorical_accuracy', IOUScore(name='iou_score')]
+    )
+
+    model.summary(print_fn=lambda x: logger.log(x))
+
+    if (pretrained_weights):
+        model.load_weights(pretrained_weights)
+
+    return model
+
+
+def node_classifier(pretrained_weights=None, input_size=(256, 256, 1)):
+    inputs = Input(input_size)
+
+    flatten = Flatten()(inputs)
+
+    dense_0 = Dense(512, activation='relu')(flatten)
+    dense_1 = Dense(6, activation='softmax')(dense_0)
+
+    model = Model(inputs=inputs, outputs=dense_1)
+
+    model.trainable = config.is_model_trainable()
+
+    model.compile(
+        optimizer=Adam(lr=config.LEARNING_RATE),
+        loss='sparse_categorical_crossentropy',
+        metrics=['sparse_categorical_accuracy']
     )
 
     model.summary(print_fn=lambda x: logger.log(x))
