@@ -7,7 +7,8 @@ from utils.platform_based_params import workplace_dir
 
 class Config:
     # Main
-    MODULES = ['prepare_samples', 'prepare_trg', 'fit_classifier']
+    MODULES = ['prepare_samples', 'prepare_trg', 'fit']
+    MODEL = 'classifier'
     MODE = 'samples'
 
     # Names of directories containing data
@@ -100,7 +101,7 @@ class Config:
             time.strftime("%Y-%m-%d_%H:%M:%S", time.gmtime())
         )
 
-    def is_model_trainable(self):
+    def is_mode_trainable(self):
         return self.MODE in ['samples', 'train']
 
 

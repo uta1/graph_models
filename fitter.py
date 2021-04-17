@@ -97,41 +97,57 @@ def _len_annotations(images_metainfo):
     return res
 
 
-def fit_unet():
-    model = unet(input_size=(*config.TARGET_SIZE, 1))
-    images_metainfo = cache_and_get_images_metainfo()
-    create_weights_folder(unet_config)
+def _fit_network(
+    images_metainfo,
+    model,
+    data_generator_func,
+    data_generator_args,
+    network_config,
+    data_len_func
+):
+    create_weights_folder(network_config)
 
     model.fit_generator(
-        generate_data_unet(images_metainfo),
-        steps_per_epoch=_steps_per_epoch(len(images_metainfo), unet_config.BATCH_SIZE),
+        data_generator_func(images_metainfo, *data_generator_args),
+        steps_per_epoch=_steps_per_epoch(data_len_func(images_metainfo), network_config.BATCH_SIZE),
         epochs=3000,
         callbacks=[
             LoggerCallback(),
             ModelCheckpoint(
-                filepath=unet_config.WEIGHTS_FILE_PATH_TEMPLATE,
+                filepath=network_config.WEIGHTS_FILE_PATH_TEMPLATE,
                 save_weights_only=False
             )
         ],
     )
 
 
-def fit_classifier():
+def _fit_unet(images_metainfo):
+    _fit_network(
+        images_metainfo,
+        unet(input_size=(*config.TARGET_SIZE, 1)),
+        generate_data_unet,
+        (),
+        unet_config,
+        len,
+    )
+
+
+def _fit_classifier(images_metainfo):
     model = classifier(input_size=(*config.IMAGE_ELEM_EMBEDDING_SIZE, ))
     graph = tf.get_default_graph()
     unet_model = unet(input_size=(*config.TARGET_SIZE, 1))
-    images_metainfo = cache_and_get_images_metainfo()
-    create_weights_folder(classifier_config)
-
-    model.fit_generator(
-        generate_data_classifier(images_metainfo, unet_model, graph),
-        steps_per_epoch=_steps_per_epoch(_len_annotations(images_metainfo), classifier_config.BATCH_SIZE),
-        epochs=3000,
-        callbacks=[
-            LoggerCallback(),
-            ModelCheckpoint(
-                filepath=classifier_config.WEIGHTS_FILE_PATH_TEMPLATE,
-                save_weights_only=False
-            )
-        ],
+    _fit_network(
+        images_metainfo,
+        model,
+        generate_data_classifier,
+        (unet_model, graph,),
+        classifier_config,
+        _len_annotations,
     )
+
+def fit():
+    images_metainfo = cache_and_get_images_metainfo()
+    if config.MODEL == 'unet':
+        _fit_unet(images_metainfo)
+    if config.MODEL == 'classifier':
+        _fit_classifier(images_metainfo)

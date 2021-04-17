@@ -54,7 +54,7 @@ def unet(pretrained_weights=None, input_size=(256, 256, 1)):
 
     model = Model(inputs=inputs, outputs=conv9)
 
-    model.trainable = config.is_model_trainable()
+    model.trainable = config.is_mode_trainable() and config.MODEL == 'unet'
 
     model.compile(
         optimizer=Adam(lr=config.LEARNING_RATE),
@@ -80,7 +80,7 @@ def classifier(pretrained_weights=None, input_size=(256, 256, 1)):
 
     model = Model(inputs=inputs, outputs=dense_1)
 
-    model.trainable = config.is_model_trainable()
+    model.trainable = config.is_mode_trainable()
 
     model.compile(
         optimizer=Adam(lr=config.LEARNING_RATE),

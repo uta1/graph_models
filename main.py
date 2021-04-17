@@ -12,8 +12,5 @@ if __name__ == '__main__':
     if 'prepare_trg' in config.MODULES:
         prepare_trg()
 
-    if 'fit_unet' in config.MODULES:
-        fit_unet()
-
-    if 'fit_classifier' in config.MODULES:
-        fit_classifier()
+    if 'fit' in config.MODULES:
+        fit()
