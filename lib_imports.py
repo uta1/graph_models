@@ -2,6 +2,7 @@ import cv2
 import dataclasses
 import json
 import math
+from multiprocessing import Lock
 import numpy as np
 import os
 import platform

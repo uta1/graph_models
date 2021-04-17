@@ -5,35 +5,33 @@ from utils.geometry import resize_rect, get_resizing_coefs
 from utils.filesystem_helper import (
     image_name_to_path,
     image_name_to_bin_path,
-    image_name_to_json_path,
     image_name_to_label_path,
 )
 
 
-def cache_and_get_images_metainfo():
-    if os.path.exists(config.CACHED_LABELS_PATH):
-        with open(config.CACHED_LABELS_PATH, 'r') as fp:
+def cache_and_get_images_metainfo(mode):
+    if os.path.exists(config.cached_labels_path(mode)):
+        with open(config.cached_labels_path(mode), 'r') as fp:
             images_metainfo = {
                 int(image_id): value
                 for image_id, value in json.load(fp).items()
             }
     else:
-        images_metainfo = _get_images_metainfo()
-        with open(config.CACHED_LABELS_PATH, 'w') as fp:
+        images_metainfo = _get_images_metainfo(mode)
+        with open(config.cached_labels_path(mode), 'w') as fp:
             json.dump(images_metainfo, fp=fp)
     return images_metainfo
 
 
-def _get_images_metainfo():
-    labels = _get_images_fullinfo()
+def _get_images_metainfo(mode):
+    labels = _get_images_fullinfo(mode)
     images_metainfo = {}
     dims_by_image_id = {}
     for image in labels['images']:
         images_metainfo[image['id']] = {
-            'file_path': image_name_to_path(image['file_name']),
-            'bin_file_path': image_name_to_bin_path(image['file_name']),
-            'label_file_path': image_name_to_label_path(image['file_name']),
-            'json_label_file_path': image_name_to_json_path(image['file_name']),
+            'file_path': image_name_to_path(mode, image['file_name']),
+            'bin_file_path': image_name_to_bin_path(mode, image['file_name']),
+            'label_file_path': image_name_to_label_path(mode, image['file_name']),
             'annotations': []
         }
         dims_by_image_id[image['id']] = {
@@ -56,6 +54,6 @@ def _get_images_metainfo():
     return images_metainfo
 
 
-def _get_images_fullinfo():
-    with open(config.LABELS_PATH, 'r') as fp:
+def _get_images_fullinfo(mode):
+    with open(config.labels_file_path(mode), 'r') as fp:
         return json.load(fp)

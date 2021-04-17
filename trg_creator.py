@@ -49,17 +49,6 @@ def _get_color_to_plot_bboxes(bboxes_to_plot):
         return (255, 0, 255)
 
 
-def _save_image_json(image_name, predicted_rects):
-    with open(image_name_to_json_path(image_name), 'w') as fp:
-        fp.write(
-            json.dumps(
-                {
-                    'rects': predicted_rects
-                }
-            )
-        )
-
-
 def _build_label_by_rects(image_metainfo, shape):
     res = np.zeros(shape, dtype=np.int32)
     for ann in image_metainfo['annotations']:
@@ -68,7 +57,7 @@ def _build_label_by_rects(image_metainfo, shape):
     return res
 
 
-def _prepare_trg_for_image(image_metainfo):
+def _prepare_trg_for_image(mode, image_metainfo):
     original = cv2.imread(image_metainfo['file_path'])
     orig_size = original.shape[:2]
 
@@ -77,11 +66,8 @@ def _prepare_trg_for_image(image_metainfo):
         orig_size,
         _predict_rects(bined)
     )
-    # already resized in _get_images_metainfo()
+    # already resized in _get_images_metainfo
     labeled_rects = _extract_rects_from_metainfo(image_metainfo)
-
-    if config.SAVE_JSONS:
-        _save_image_json(image_metainfo, predicted_rects)
 
     res = resize(bined if config.BINARIZE else original)
 
@@ -107,10 +93,11 @@ def _prepare_trg_for_image(image_metainfo):
 
 
 def prepare_trg():
-    create_path(config.BINS_FOLDER)
-    create_path(config.LABELS_FOLDER)
-    create_path(config.JSONS_FOLDER)
+    for mode in config.MODES_TO_CREATE_TRG:
+        create_path(config.bins_folder_path(mode))
+        create_path(config.labels_folder_path(mode))
+        create_path(config.jsons_folder_path(mode))
 
-    images_metainfo = cache_and_get_images_metainfo()
-    for metainfo in images_metainfo.values():
-        _prepare_trg_for_image(metainfo)
+        images_metainfo = cache_and_get_images_metainfo(mode)
+        for metainfo in images_metainfo.values():
+            _prepare_trg_for_image(mode, metainfo)

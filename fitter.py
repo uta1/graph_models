@@ -25,14 +25,16 @@ def generate_data_unet(images_metainfo):
             yield np.array(batch_x), np.array(batch_y)
 
 
-def generate_data_classifier(images_metainfo, unet_model, graph):
+def generate_data_classifier(images_metainfo, lock, unet_model, graph):
     while True:
         batch_x = []
         batch_y = []
         for image_metainfo in images_metainfo.values():
             unet_input = np_monobatch_from_path(image_metainfo['bin_file_path'])
+            lock.acquire()
             with graph.as_default():
                 unet_output = unet_model.predict(unet_input)
+            lock.release()
 
             for ann in image_metainfo['annotations']:
                 x, y, w, h = ann['bbox']
@@ -131,7 +133,8 @@ def _len_annotations(images_metainfo):
 
 
 def _fit_network(
-    images_metainfo,
+    images_metainfo_train,
+    images_metainfo_val,
     model,
     data_generator_func,
     data_generator_args,
@@ -141,8 +144,10 @@ def _fit_network(
     create_weights_folder(network_config)
 
     model.fit_generator(
-        data_generator_func(images_metainfo, *data_generator_args),
-        steps_per_epoch=_steps_per_epoch(data_len_func(images_metainfo), network_config.BATCH_SIZE),
+        data_generator_func(images_metainfo_train, *data_generator_args),
+        validation_data=data_generator_func(images_metainfo_val, *data_generator_args),
+        steps_per_epoch=_steps_per_epoch(data_len_func(images_metainfo_train), network_config.BATCH_SIZE),
+        validation_steps=_steps_per_epoch(data_len_func(images_metainfo_val), network_config.BATCH_SIZE),
         epochs=3000,
         callbacks=[
             LoggerCallback(),
@@ -154,9 +159,10 @@ def _fit_network(
     )
 
 
-def _fit_unet(images_metainfo):
+def _fit_unet(images_metainfo_train, images_metainfo_val):
     _fit_network(
-        images_metainfo,
+        images_metainfo_train,
+        images_metainfo_val,
         unet(input_size=(*config.TARGET_SIZE, 1)),
         generate_data_unet,
         (),
@@ -165,23 +171,28 @@ def _fit_unet(images_metainfo):
     )
 
 
-def _fit_classifier(images_metainfo):
+def _fit_classifier(images_metainfo_train, images_metainfo_val):
     model = classifier(input_size=(*config.IMAGE_ELEM_EMBEDDING_SIZE, ))
     graph = tf.get_default_graph()
     unet_model = unet(input_size=(*config.TARGET_SIZE, 1))
+    lock = Lock()
     _fit_network(
-        images_metainfo,
+        images_metainfo_train,
+        images_metainfo_val,
         model,
         generate_data_classifier,
-        (unet_model, graph,),
+        (lock, unet_model, graph,),
         classifier_config,
         _len_annotations,
     )
 
 
 def fit():
-    images_metainfo = cache_and_get_images_metainfo()
+    images_metainfo_train = cache_and_get_images_metainfo('train')
+    images_metainfo_val = cache_and_get_images_metainfo('val')
+
     if config.MODEL == 'unet':
-        _fit_unet(images_metainfo)
+        fit_func = _fit_unet
     if config.MODEL == 'classifier':
-        _fit_classifier(images_metainfo)
+        fit_func = _fit_classifier
+    fit_func(images_metainfo_train, images_metainfo_val)
