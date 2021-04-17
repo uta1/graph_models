@@ -77,7 +77,7 @@ def _prepare_trg_for_image(image_metainfo):
         orig_size,
         _predict_rects(bined)
     )
-    # already resized in get_images_metainfo()
+    # already resized in _get_images_metainfo()
     labeled_rects = _extract_rects_from_metainfo(image_metainfo)
 
     if config.SAVE_JSONS:
