@@ -21,7 +21,7 @@ class Config:
 
     # Logs settings
     LOGS_FOLDER_NAME = 'logs'
-    LOG_FILE_NAME_TEMPLATE = 'log_{}_{}_{}.log'  # 'log_mode_lr_timestamp.log'
+    LOG_FILE_NAME_TEMPLATE = 'log_{}_{}_{}_{}.log'  # 'log_mode_model_lr_timestamp.log'
 
     # Rects prediction
     MIN_OBJECT_WIDTH = 4
@@ -97,6 +97,7 @@ class Config:
     def log_file_name_snapshot(self):
         return self.LOG_FILE_NAME_TEMPLATE.format(
             self.MODE,
+            self.MODEL,
             self.LEARNING_RATE,
             time.strftime("%Y-%m-%d_%H:%M:%S", time.gmtime())
         )
