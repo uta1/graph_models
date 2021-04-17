@@ -3,6 +3,17 @@ from lib_imports import *
 from config import *
 
 
+def _floor(rect):
+    return [
+        math.floor(elem)
+        for elem in rect
+    ]
+
+
+def _floor_rects(rects):
+    return [_floor(rect) for rect in rects]
+
+
 def resize(orig):
     if config.TARGET_SIZE:
         return cv2.resize(
@@ -13,15 +24,8 @@ def resize(orig):
     return orig
 
 
-def floor(rect):
-    return [
-        math.floor(elem)
-        for elem in rect
-    ]
-
-
 def resize_rect(coef_width, coef_height, rect):
-    return floor(
+    return _floor(
         [
             rect[0] * coef_width,
             rect[1] * coef_height,
@@ -31,13 +35,9 @@ def resize_rect(coef_width, coef_height, rect):
     )
 
 
-def floor_rects(rects):
-    return [floor(rect) for rect in rects]
-
-
 def resize_rects(orig_size, rects):
     if not config.TARGET_SIZE:
-        return floor_rects(rects)
+        return _floor_rects(rects)
 
     coef_width, coef_height = get_resizing_coefs(orig_size[1], orig_size[0])
     return [resize_rect(coef_width, coef_height, rect) for rect in rects]

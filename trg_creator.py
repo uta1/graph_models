@@ -1,7 +1,7 @@
 from lib_imports import *
 
 from config import config
-from utils.geometry import *
+from utils.geometry import resize, resize_rects
 from utils.filesystem_helper import create_path
 from utils.images_metainfo_cacher import cache_and_get_images_metainfo
 
