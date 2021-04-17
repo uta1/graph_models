@@ -1,7 +1,7 @@
 from lib_imports import *
 
-from config import *
-from utils.filesystem_helper import *
+from config import config
+from utils.filesystem_helper import create_path
 
 
 class Logger:

@@ -1,9 +1,9 @@
 from lib_imports import *
 
-from samples_maker import *
-from config import *
-from fitter import *
-from trg_creator import *
+from samples_maker import prepare_samples
+from config import config
+from fitter import fit
+from trg_creator import prepare_trg
 
 if __name__ == '__main__':
     if 'prepare_samples' in config.MODULES:

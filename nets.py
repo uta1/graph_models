@@ -1,7 +1,7 @@
 from lib_imports import *
 
-from config import *
-from logger import *
+from config import config
+from logger import logger
 
 
 def unet(pretrained_weights=None, input_size=(256, 256, 1)):

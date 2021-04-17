@@ -1,8 +1,6 @@
 from lib_imports import *
 
-from utils.filesystem_helper import create_path
-from utils.platform_based_params import folders_delim
-from utils.platform_based_params import workplace_dir
+from utils.platform_based_params import folders_delim, workplace_dir
 
 
 class Config:

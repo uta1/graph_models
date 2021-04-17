@@ -1,10 +1,21 @@
 from lib_imports import *
 
-from config import *
+from config import config
 
 
-def remove_extension(file_name):
+def _remove_extension(file_name):
     return file_name.split('.')[0]
+
+
+def _get_file_names(folder):
+    for images_info in os.walk(folder):
+        return images_info[-1]
+
+
+def _create_folder_if_not_exists(folder):
+    if os.path.exists(folder):
+        return
+    os.mkdir(folder)
 
 
 def image_name_to_path(image_name):
@@ -12,26 +23,15 @@ def image_name_to_path(image_name):
 
 
 def image_name_to_bin_path(image_name):
-    return config.BINS_FOLDER + 'trg_b_' + remove_extension(image_name) + '.tiff'
+    return config.BINS_FOLDER + 'trg_b_' + _remove_extension(image_name) + '.tiff'
 
 
 def image_name_to_json_path(image_name):
-    return config.JSONS_FOLDER + 'trg_j_' + remove_extension(image_name) + '.json'
+    return config.JSONS_FOLDER + 'trg_j_' + _remove_extension(image_name) + '.json'
 
 
 def image_name_to_label_path(image_name):
-    return config.LABELS_FOLDER + 'trg_l_' + remove_extension(image_name) + '.tiff'
-
-
-def get_file_names(folder):
-    for images_info in os.walk(folder):
-        return images_info[-1]
-
-
-def create_folder_if_not_exists(folder):
-    if os.path.exists(folder):
-        return
-    os.mkdir(folder)
+    return config.LABELS_FOLDER + 'trg_l_' + _remove_extension(image_name) + '.tiff'
 
 
 def create_path(path):
@@ -45,7 +45,7 @@ def create_path(path):
     cur_path = ''
     for folder in folders:
         cur_path += folder + '/'
-        create_folder_if_not_exists(cur_path)
+        _create_folder_if_not_exists(cur_path)
 
 def create_weights_folder(network_config):
     create_path(network_config.WEIGHTS_FOLDER_PATH)
