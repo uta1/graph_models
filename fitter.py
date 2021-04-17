@@ -23,7 +23,6 @@ def generate_data_unet(images_metainfo):
 
         if len(batch_x) > 0:
             yield np.array(batch_x), np.array(batch_y)
-    return
 
 
 def generate_data_classifier(images_metainfo, unet_model, graph):
@@ -56,6 +55,14 @@ def generate_data_classifier(images_metainfo, unet_model, graph):
 
 
 class LoggerCallback(Callback):
+    losses = []
+    sparse_categorical_accuracies = []
+    iou_scores = []
+
+    val_losses = []
+    val_sparse_categorical_accuracies = []
+    val_iou_scores = []
+
     def on_epoch_begin(self, epoch, logs={}):
         logger.log('Epoch {} began'.format(epoch), print_timestamp=True)
 
@@ -70,18 +77,43 @@ class LoggerCallback(Callback):
         )
 
     def on_epoch_end(self, epoch, logs={}):
+        self.losses.append(logs.get('loss'))
+        self.sparse_categorical_accuracies.append(logs.get('sparse_categorical_accuracy'))
+        self.iou_scores.append(logs.get('iou_score'))
+
+        self.val_losses.append(logs.get('val_loss'))
+        self.val_sparse_categorical_accuracies.append(logs.get('val_sparse_categorical_accuracy'))
+        self.val_iou_scores.append(logs.get('val_iou_score'))
+
         logger.log(
-            'epoch_loss: {} epoch_categorical_accuracy: {} epoch_iou_score: {}'.format(
-                logs.get('loss'),
-                logs.get('sparse_categorical_accuracy'),
-                logs.get('iou_score')
+            'epochs_losses: {}'.format(
+                str(self.losses)
             )
         )
         logger.log(
-            'epoch_val_loss: {} epoch_val_categorical_accuracy: {} epoch_val_iou_score: {}'.format(
-                logs.get('val_loss'),
-                logs.get('val_sparse_categorical_accuracy'),
-                logs.get('val_iou_score')
+            'epochs_sparse_categorical_accuracies: {}'.format(
+                str(self.sparse_categorical_accuracies)
+            )
+        )
+        logger.log(
+            'epochs_iou_scores: {}'.format(
+                str(self.iou_scores)
+            )
+        )
+
+        logger.log(
+            'epochs_val_losses: {}'.format(
+                str(self.val_losses)
+            )
+        )
+        logger.log(
+            'epochs_val_sparse_categorical_accuracies: {}'.format(
+                str(self.val_sparse_categorical_accuracies)
+            )
+        )
+        logger.log(
+            'epochs_val_iou_scores: {}'.format(
+                str(self.val_iou_scores)
             )
         )
 
