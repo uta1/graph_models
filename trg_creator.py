@@ -2,7 +2,7 @@ from lib_imports import *
 
 from config import config
 from utils.geometry import resize, resize_rects
-from utils.filesystem_helper import create_path
+from utils.filesystem_helper import create_path, bins_folder_path, labels_folder_path, jsons_folder_path
 from utils.images_metainfo_cacher import cache_and_get_images_metainfo
 
 
@@ -94,9 +94,9 @@ def _prepare_trg_for_image(mode, image_metainfo):
 
 def prepare_trg():
     for mode in config.MODES_TO_CREATE_TRG:
-        create_path(config.bins_folder_path(mode))
-        create_path(config.labels_folder_path(mode))
-        create_path(config.jsons_folder_path(mode))
+        create_path(bins_folder_path(mode))
+        create_path(labels_folder_path(mode))
+        create_path(jsons_folder_path(mode))
 
         images_metainfo = cache_and_get_images_metainfo(mode)
         for metainfo in images_metainfo.values():

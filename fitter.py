@@ -3,7 +3,7 @@ from lib_imports import *
 from config import config, unet_config, classifier_config
 from nets import unet, classifier
 from logger import logger
-from utils.filesystem_helper import create_path, create_weights_folder
+from utils.filesystem_helper import create_path, create_weights_folder, weights_file_path_template
 from utils.cv2_utils import np_image_from_path, np_monobatch_from_path
 from utils.images_metainfo_cacher import cache_and_get_images_metainfo
 
@@ -152,7 +152,7 @@ def _fit_network(
         callbacks=[
             LoggerCallback(),
             ModelCheckpoint(
-                filepath=network_config.WEIGHTS_FILE_PATH_TEMPLATE,
+                filepath=weights_file_path_template(network_config),
                 save_weights_only=False
             )
         ],

@@ -3,22 +3,24 @@ from lib_imports import *
 from config import config
 from utils.geometry import resize_rect, get_resizing_coefs
 from utils.filesystem_helper import (
+    cached_labels_path,
     image_name_to_path,
     image_name_to_bin_path,
     image_name_to_label_path,
+    labels_file_path,
 )
 
 
 def cache_and_get_images_metainfo(mode):
-    if os.path.exists(config.cached_labels_path(mode)):
-        with open(config.cached_labels_path(mode), 'r') as fp:
+    if os.path.exists(cached_labels_path(mode)):
+        with open(cached_labels_path(mode), 'r') as fp:
             images_metainfo = {
                 int(image_id): value
                 for image_id, value in json.load(fp).items()
             }
     else:
         images_metainfo = _get_images_metainfo(mode)
-        with open(config.cached_labels_path(mode), 'w') as fp:
+        with open(cached_labels_path(mode), 'w') as fp:
             json.dump(images_metainfo, fp=fp)
     return images_metainfo
 
@@ -55,5 +57,5 @@ def _get_images_metainfo(mode):
 
 
 def _get_images_fullinfo(mode):
-    with open(config.labels_file_path(mode), 'r') as fp:
+    with open(labels_file_path(mode), 'r') as fp:
         return json.load(fp)
