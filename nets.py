@@ -57,9 +57,9 @@ def unet(pretrained_weights=None, input_size=(256, 256, 1)):
     model.trainable = config.MODEL == 'unet'
 
     model.compile(
-        optimizer=Adam(lr=unet_config.LEARNING_RATE),
+        optimizer='adam',
         loss='sparse_categorical_crossentropy',
-        metrics=['sparse_categorical_accuracy', IOUScore(name='iou_score')]
+        metrics=['sparse_categorical_accuracy']
     )
 
     model.summary(print_fn=lambda x: logger.log(x))
@@ -83,7 +83,7 @@ def classifier(pretrained_weights=None, input_size=(256, 256, 1)):
     model.trainable = True
 
     model.compile(
-        optimizer=Adam(lr=classifier_config.LEARNING_RATE),
+        optimizer='adam',
         loss='sparse_categorical_crossentropy',
         metrics=['sparse_categorical_accuracy']
     )

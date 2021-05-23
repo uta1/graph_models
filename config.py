@@ -23,6 +23,10 @@ class Config:
     WEIGHTS_FOLDER_NAME_TEMPLATE: str = '{}_weights'  # 'name_weights'
     WEIGHTS_FILE_NAME_TEMPLATE: str = '{epoch:03d}_epoches.chpt'
 
+    # Unet samples saving settings
+    UNET_SAMPLES_FOLDER_NAME: str = 'epoches_samples'
+    UNET_SAMPLE_FILE_NAME_TEMPLATE: str = '{epoch:03d}_epoches.png'
+
     # Logs settings
     LOGS_FOLDER_NAME: str = 'logs'
     LOG_FILE_NAME_TEMPLATE: str = 'log_{}_{}.log'  # 'log_timestamp_model.log'

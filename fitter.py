@@ -3,7 +3,13 @@ from lib_imports import *
 from config import config, unet_config, classifier_config
 from nets import unet, classifier
 from logger import logger
-from utils.filesystem_helper import create_path, create_weights_folder, weights_file_path_template
+from utils.filesystem_helper import (
+    create_path,
+    create_weights_folder,
+    weights_file_path_template,
+    create_unet_samples_folder,
+    unet_sample_file_path_template
+)
 from utils.cv2_utils import np_image_from_path, np_monobatch_from_path
 from utils.images_metainfo_cacher import cache_and_get_images_metainfo
 
@@ -25,15 +31,14 @@ def generate_data_unet(images_metainfo):
             yield np.array(batch_x), np.array(batch_y)
 
 
-def generate_data_classifier(images_metainfo, lock, unet_model, graph):
+def generate_data_classifier(images_metainfo, lock, unet_model):
     while True:
         batch_x = []
         batch_y = []
         for image_metainfo in images_metainfo.values():
             unet_input = np_monobatch_from_path(image_metainfo['bin_file_path'])
             lock.acquire()
-            with graph.as_default():
-                unet_output = unet_model.predict(unet_input)
+            unet_output = unet_model.predict(unet_input)
             lock.release()
 
             for ann in image_metainfo['annotations']:
@@ -67,25 +72,21 @@ class LoggerCallback(Callback):
 
     def on_epoch_begin(self, epoch, logs={}):
         logger.log('Epoch {} began'.format(epoch), print_timestamp=True)
-
     def on_batch_end(self, batch, logs):
         logger.log(
             'batch: {} train_loss: {} train_categorical_accuracy: {} train_iou_score: {}'.format(
                 batch,
                 logs.get('loss'),
-                logs.get('sparse_categorical_accuracy'),
-                logs.get('iou_score')
+                logs.get('sparse_categorical_accuracy')
             )
         )
 
     def on_epoch_end(self, epoch, logs={}):
         self.losses.append(logs.get('loss'))
         self.sparse_categorical_accuracies.append(logs.get('sparse_categorical_accuracy'))
-        self.iou_scores.append(logs.get('iou_score'))
 
         self.val_losses.append(logs.get('val_loss'))
         self.val_sparse_categorical_accuracies.append(logs.get('val_sparse_categorical_accuracy'))
-        self.val_iou_scores.append(logs.get('val_iou_score'))
 
         logger.log(
             'epochs_losses: {}'.format(
@@ -95,11 +96,6 @@ class LoggerCallback(Callback):
         logger.log(
             'epochs_sparse_categorical_accuracies: {}'.format(
                 str(self.sparse_categorical_accuracies)
-            )
-        )
-        logger.log(
-            'epochs_iou_scores: {}'.format(
-                str(self.iou_scores)
             )
         )
 
@@ -113,10 +109,16 @@ class LoggerCallback(Callback):
                 str(self.val_sparse_categorical_accuracies)
             )
         )
-        logger.log(
-            'epochs_val_iou_scores: {}'.format(
-                str(self.val_iou_scores)
-            )
+
+
+class SampleSaverCallback(Callback):
+    def on_epoch_end(self, epoch, logs={}):
+        predicted_sample = self.model.predict(x_to_eval)[0,:,:,:]
+        to_save = np.argmax(predicted_sample, axis=-1)
+
+        cv2.imwrite(
+            unet_sample_file_path_template().format(epoch=epoch),
+            to_save * 50
         )
 
 
@@ -143,19 +145,24 @@ def _fit_network(
 ):
     create_weights_folder(network_config)
 
+    callbacks = [
+        LoggerCallback(),
+        ModelCheckpoint(
+            filepath=weights_file_path_template(network_config),
+            save_weights_only=False
+        )
+    ]
+    if config.MODEL == 'unet':
+        create_unet_samples_folder()
+        callbacks.append(SampleSaverCallback())
+
     model.fit_generator(
         data_generator_func(images_metainfo_train, *data_generator_args),
         validation_data=data_generator_func(images_metainfo_val, *data_generator_args),
         steps_per_epoch=_steps_per_epoch(data_len_func(images_metainfo_train), network_config.BATCH_SIZE),
         validation_steps=_steps_per_epoch(data_len_func(images_metainfo_val), network_config.BATCH_SIZE),
         epochs=3000,
-        callbacks=[
-            LoggerCallback(),
-            ModelCheckpoint(
-                filepath=weights_file_path_template(network_config),
-                save_weights_only=False
-            )
-        ],
+        callbacks=callbacks,
     )
 
 
@@ -173,7 +180,6 @@ def _fit_unet(images_metainfo_train, images_metainfo_val):
 
 def _fit_classifier(images_metainfo_train, images_metainfo_val):
     model = classifier(input_size=(*config.IMAGE_ELEM_EMBEDDING_SIZE, ))
-    graph = tf.get_default_graph()
     unet_model = unet(input_size=(*config.TARGET_SIZE, 1))
     lock = Lock()
     _fit_network(
@@ -181,7 +187,7 @@ def _fit_classifier(images_metainfo_train, images_metainfo_val):
         images_metainfo_val,
         model,
         generate_data_classifier,
-        (lock, unet_model, graph,),
+        (lock, unet_model,),
         classifier_config,
         _len_annotations,
     )
