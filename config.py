@@ -57,18 +57,15 @@ config = Config()
 class NetworkConfig:
     NAME: str
     BATCH_SIZE: int
-    LEARNING_RATE: float
 
 
 unet_config = NetworkConfig(
     NAME='unet',
     BATCH_SIZE=1,
-    LEARNING_RATE=1e-4,
 )
 
 
 classifier_config = NetworkConfig(
     NAME='classifier',
     BATCH_SIZE=16,
-    LEARNING_RATE=1e-4,
 )
