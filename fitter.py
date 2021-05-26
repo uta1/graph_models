@@ -14,21 +14,32 @@ from utils.cv2_utils import np_image_from_path, np_monobatch_from_path
 from utils.images_metainfo_cacher import cache_and_get_images_metainfo
 
 
+x_to_eval = None
+
+def generate_data_unet_step(images_metainfo):
+    global x_to_eval
+
+    batch_x = []
+    batch_y = []
+    for image_metainfo in images_metainfo.values():
+        batch_x.append(np_image_from_path(image_metainfo['bin_file_path']))
+        batch_y.append(np_image_from_path(image_metainfo['label_file_path']))
+
+        if len(batch_x) == unet_config.BATCH_SIZE:
+            if x_to_eval is None:
+                x_to_eval = np.array(batch_x)
+            yield np.array(batch_x), np.array(batch_y)
+            batch_x = []
+            batch_y = []
+
+    if len(batch_x) > 0:
+        yield np.array(batch_x), np.array(batch_y)
+
+
 def generate_data_unet(images_metainfo):
     while True:
-        batch_x = []
-        batch_y = []
-        for image_metainfo in images_metainfo.values():
-            batch_x.append(np_image_from_path(image_metainfo['bin_file_path']))
-            batch_y.append(np_image_from_path(image_metainfo['label_file_path']))
-
-            if len(batch_x) == unet_config.BATCH_SIZE:
-                yield np.array(batch_x), np.array(batch_y)
-                batch_x = []
-                batch_y = []
-
-        if len(batch_x) > 0:
-            yield np.array(batch_x), np.array(batch_y)
+        for batches in generate_data_unet_step(images_metainfo):
+            yield batches
 
 
 def generate_data_classifier(images_metainfo, lock, unet_model):
@@ -74,7 +85,7 @@ class LoggerCallback(Callback):
         logger.log('Epoch {} began'.format(epoch), print_timestamp=True)
     def on_batch_end(self, batch, logs):
         logger.log(
-            'batch: {} train_loss: {} train_categorical_accuracy: {} train_iou_score: {}'.format(
+            'batch: {} train_loss: {} train_categorical_accuracy: {}'.format(
                 batch,
                 logs.get('loss'),
                 logs.get('sparse_categorical_accuracy')
