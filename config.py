@@ -9,7 +9,7 @@ class Config:
     MODULES: list = dataclasses.field(
         default_factory=lambda: ['prepare_samples', 'prepare_trg', 'fit']
     )
-    MODEL: str = 'classifier'
+    MODEL: str = 'unet'
 
     # Names of directories containing data
     SRC_FOLDER_NAME: str = 'src'  # contains train, val, test
@@ -41,7 +41,7 @@ class Config:
         default_factory=lambda: ['train', 'val']
     )
     TARGET_SIZE: tuple = (512, 512)  # None or tuple
-    BINARIZE: bool = True
+    BINARIZE: bool = False
     BBOXES_TO_PLOT: list = dataclasses.field(  # elements: 'predicted', 'labeled'
         default_factory=lambda: []
     )

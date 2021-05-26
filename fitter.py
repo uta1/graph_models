@@ -22,7 +22,12 @@ def generate_data_unet_step(images_metainfo):
     batch_x = []
     batch_y = []
     for image_metainfo in images_metainfo.values():
-        batch_x.append(np_image_from_path(image_metainfo['bin_file_path']))
+        batch_x.append(
+            np_image_from_path(
+                image_metainfo['bin_file_path'],
+                drop_last_dim=config.BINARIZE
+            )
+        )
         batch_y.append(np_image_from_path(image_metainfo['label_file_path']))
 
         if len(batch_x) == unet_config.BATCH_SIZE:
@@ -47,7 +52,10 @@ def generate_data_classifier(images_metainfo, lock, unet_model):
         batch_x = []
         batch_y = []
         for image_metainfo in images_metainfo.values():
-            unet_input = np_monobatch_from_path(image_metainfo['bin_file_path'])
+            unet_input = np_monobatch_from_path(
+                image_metainfo['bin_file_path'],
+                drop_last_dim=config.BINARIZE
+            )
             lock.acquire()
             unet_output = unet_model.predict(unet_input)
             lock.release()
@@ -177,11 +185,15 @@ def _fit_network(
     )
 
 
+def _default_unet_model():
+    return unet(input_size=(*config.TARGET_SIZE, 1 if config.BINARIZE else 3))
+
+
 def _fit_unet(images_metainfo_train, images_metainfo_val):
     _fit_network(
         images_metainfo_train,
         images_metainfo_val,
-        unet(input_size=(*config.TARGET_SIZE, 1)),
+        _default_unet_model(),
         generate_data_unet,
         (),
         unet_config,
@@ -191,7 +203,7 @@ def _fit_unet(images_metainfo_train, images_metainfo_val):
 
 def _fit_classifier(images_metainfo_train, images_metainfo_val):
     model = classifier(input_size=(*config.IMAGE_ELEM_EMBEDDING_SIZE, ))
-    unet_model = unet(input_size=(*config.TARGET_SIZE, 1))
+    unet_model = _default_unet_model()
     lock = Lock()
     _fit_network(
         images_metainfo_train,
