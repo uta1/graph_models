@@ -57,7 +57,7 @@ def _build_label_by_rects(image_metainfo, shape):
     return res
 
 
-def _prepare_trg_for_image(mode, image_metainfo):
+def _prepare_trg_for_image(image_metainfo):
     original = cv2.imread(image_metainfo['file_path'])
     orig_size = original.shape[:2]
 
@@ -100,4 +100,4 @@ def prepare_trg():
 
         images_metainfo = cache_and_get_images_metainfo(mode)
         for metainfo in images_metainfo.values():
-            _prepare_trg_for_image(mode, metainfo)
+            _prepare_trg_for_image(metainfo)
