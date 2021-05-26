@@ -36,3 +36,4 @@ if __name__ == '__main__':
             counter += 1
             print(epoch_name, str(counter) + '/' + str(len(images_metainfo_val.values())))
         logger.log(epoch_name + ': ' + str(metrics_estimator.result().numpy()))
+
