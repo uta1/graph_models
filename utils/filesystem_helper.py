@@ -107,6 +107,15 @@ def weights_file_path_template(network_config):
     return weights_folder_path(network_config) + config.WEIGHTS_FILE_NAME_TEMPLATE
 
 
+# Samples saving properties
+
+def unet_samples_folder_path():
+    return workplace_dir() + config.UNET_SAMPLES_FOLDER_NAME + folders_delim()
+
+def unet_sample_file_path_template():
+    return unet_samples_folder_path() + config.UNET_SAMPLE_FILE_NAME_TEMPLATE
+
+
 # Directories creation
 
 def create_path(path):
@@ -124,3 +133,6 @@ def create_path(path):
 
 def create_weights_folder(network_config):
     create_path(weights_folder_path(network_config))
+
+def create_unet_samples_folder():
+    create_path(unet_samples_folder_path())

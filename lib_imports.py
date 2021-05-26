@@ -15,4 +15,3 @@ from keras.callbacks import Callback, ModelCheckpoint, LearningRateScheduler
 from keras.layers import *
 from keras.models import *
 from keras.optimizers import *
-from segmentation_models.metrics import IOUScore
