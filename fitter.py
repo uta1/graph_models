@@ -10,13 +10,14 @@ from utils.filesystem_helper import (
     create_unet_samples_folder,
     unet_sample_file_path_template
 )
+from utils.common import repeat_generator
 from utils.cv2_utils import np_image_from_path, np_monobatch_from_path
 from utils.images_metainfo_cacher import cache_and_get_images_metainfo
 
 
 x_to_eval = None
 
-def generate_data_unet_step(images_metainfo):
+def generate_data_unet(images_metainfo):
     global x_to_eval
 
     batch_x = []
@@ -25,10 +26,15 @@ def generate_data_unet_step(images_metainfo):
         batch_x.append(
             np_image_from_path(
                 image_metainfo['bin_file_path'],
-                drop_last_dim=config.BINARIZE
+                binarized=config.BINARIZE
             )
         )
-        batch_y.append(np_image_from_path(image_metainfo['label_file_path']))
+        batch_y.append(
+            np_image_from_path(
+                image_metainfo['label_file_path'],
+                binarized=True
+            )
+        )
 
         if len(batch_x) == unet_config.BATCH_SIZE:
             if x_to_eval is None:
@@ -41,43 +47,36 @@ def generate_data_unet_step(images_metainfo):
         yield np.array(batch_x), np.array(batch_y)
 
 
-def generate_data_unet(images_metainfo):
-    while True:
-        for batches in generate_data_unet_step(images_metainfo):
-            yield batches
-
-
 def generate_data_classifier(images_metainfo, lock, unet_model):
-    while True:
-        batch_x = []
-        batch_y = []
-        for image_metainfo in images_metainfo.values():
-            unet_input = np_monobatch_from_path(
-                image_metainfo['bin_file_path'],
-                drop_last_dim=config.BINARIZE
-            )
-            lock.acquire()
-            unet_output = unet_model.predict(unet_input)
-            lock.release()
+    batch_x = []
+    batch_y = []
+    for image_metainfo in images_metainfo.values():
+        unet_input = np_monobatch_from_path(
+            image_metainfo['bin_file_path'],
+            binarized=config.BINARIZE
+        )
+        lock.acquire()
+        unet_output = unet_model.predict(unet_input)
+        lock.release()
 
-            for ann in image_metainfo['annotations']:
-                x, y, w, h = ann['bbox']
-                batch_x.append(
-                    cv2.resize(
-                        unet_output[0, y:y+h, x:x+w, :],
-                        (config.IMAGE_ELEM_EMBEDDING_SIZE[1], config.IMAGE_ELEM_EMBEDDING_SIZE[0]),
-                        interpolation=cv2.INTER_NEAREST
-                    )
+        for ann in image_metainfo['annotations']:
+            x, y, w, h = ann['bbox']
+            batch_x.append(
+                cv2.resize(
+                    unet_output[0, y:y+h, x:x+w, :],
+                    (config.IMAGE_ELEM_EMBEDDING_SIZE[1], config.IMAGE_ELEM_EMBEDDING_SIZE[0]),
+                    interpolation=cv2.INTER_NEAREST
                 )
-                batch_y.append(ann['category_id'])
+            )
+            batch_y.append(ann['category_id'])
 
-                if len(batch_x) == classifier_config.BATCH_SIZE:
-                    yield np.array(batch_x), np.array(batch_y)
-                    batch_x = []
-                    batch_y = []
+            if len(batch_x) == classifier_config.BATCH_SIZE:
+                yield np.array(batch_x), np.array(batch_y)
+                batch_x = []
+                batch_y = []
 
-        if len(batch_x) > 0:
-            yield np.array(batch_x), np.array(batch_y)
+    if len(batch_x) > 0:
+        yield np.array(batch_x), np.array(batch_y)
 
 
 class LoggerCallback(Callback):
@@ -176,8 +175,8 @@ def _fit_network(
         callbacks.append(SampleSaverCallback())
 
     model.fit_generator(
-        data_generator_func(images_metainfo_train, *data_generator_args),
-        validation_data=data_generator_func(images_metainfo_val, *data_generator_args),
+        repeat_generator(data_generator_func, (images_metainfo_train, *data_generator_args)),
+        validation_data=repeat_generator(data_generator_func, (images_metainfo_val, *data_generator_args)),
         steps_per_epoch=_steps_per_epoch(data_len_func(images_metainfo_train), network_config.BATCH_SIZE),
         validation_steps=_steps_per_epoch(data_len_func(images_metainfo_val), network_config.BATCH_SIZE),
         epochs=3000,
