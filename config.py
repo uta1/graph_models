@@ -9,7 +9,7 @@ class Config:
     MODULES: list = dataclasses.field(
         default_factory=lambda: ['prepare_samples', 'prepare_trg', 'fit']
     )
-    MODEL: str = 'unet'
+    MODEL: str = 'classifier'
 
     # Names of directories containing data
     SRC_FOLDER_NAME: str = 'src'  # contains train, val, test

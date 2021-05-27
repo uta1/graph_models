@@ -1,80 +1,18 @@
 from lib_imports import *
 
 from config import config, unet_config, classifier_config
-from nets import unet, classifier
-from logger import logger
-from model_processing.generators import x_to_eval, generate_data_unet, generate_data_classifier
+from model_processing.nets import unet, classifier
+from model_processing.callbacks import LoggerCallback, SampleSaverCallback
+from model_processing.generators import generate_data_unet, generate_data_classifier
 from utils.filesystem_helper import (
     create_path,
     create_weights_folder,
     weights_file_path_template,
-    create_unet_samples_folder,
-    unet_sample_file_path_template
+    create_unet_samples_folder
 )
 from utils.common import repeat_generator
 from utils.cv2_utils import np_image_from_path, np_monobatch_from_path
 from utils.images_metainfo_cacher import cache_and_get_images_metainfo
-
-
-class LoggerCallback(Callback):
-    losses = []
-    sparse_categorical_accuracies = []
-    iou_scores = []
-
-    val_losses = []
-    val_sparse_categorical_accuracies = []
-    val_iou_scores = []
-
-    def on_epoch_begin(self, epoch, logs={}):
-        logger.log('Epoch {} began'.format(epoch), print_timestamp=True)
-    def on_batch_end(self, batch, logs):
-        logger.log(
-            'batch: {} train_loss: {} train_categorical_accuracy: {}'.format(
-                batch,
-                logs.get('loss'),
-                logs.get('sparse_categorical_accuracy')
-            )
-        )
-
-    def on_epoch_end(self, epoch, logs={}):
-        self.losses.append(logs.get('loss'))
-        self.sparse_categorical_accuracies.append(logs.get('sparse_categorical_accuracy'))
-
-        self.val_losses.append(logs.get('val_loss'))
-        self.val_sparse_categorical_accuracies.append(logs.get('val_sparse_categorical_accuracy'))
-
-        logger.log(
-            'epochs_losses: {}'.format(
-                str(self.losses)
-            )
-        )
-        logger.log(
-            'epochs_sparse_categorical_accuracies: {}'.format(
-                str(self.sparse_categorical_accuracies)
-            )
-        )
-
-        logger.log(
-            'epochs_val_losses: {}'.format(
-                str(self.val_losses)
-            )
-        )
-        logger.log(
-            'epochs_val_sparse_categorical_accuracies: {}'.format(
-                str(self.val_sparse_categorical_accuracies)
-            )
-        )
-
-
-class SampleSaverCallback(Callback):
-    def on_epoch_end(self, epoch, logs={}):
-        predicted_sample = self.model.predict(x_to_eval)[0,:,:,:]
-        to_save = np.argmax(predicted_sample, axis=-1)
-
-        cv2.imwrite(
-            unet_sample_file_path_template().format(epoch=epoch),
-            to_save * 50
-        )
 
 
 def _steps_per_epoch(items, batch_size):
