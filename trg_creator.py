@@ -62,8 +62,6 @@ def _prepare_trg_for_image(image_metainfo):
     orig_size = original.shape[:2]
 
     bined = _prepare_bined(original)
-    # already resized in _get_images_metainfo
-    labeled_rects = _extract_rects_from_metainfo(image_metainfo)
 
     res = resize(bined if config.BINARIZE else original)
 
@@ -75,6 +73,8 @@ def _prepare_trg_for_image(image_metainfo):
             orig_size,
             _predict_rects(bined)
         )
+        # already resized in _get_images_metainfo
+        labeled_rects = _extract_rects_from_metainfo(image_metainfo)
         for x, y, w, h in _get_rects_to_plot_bboxes(bboxes_to_plot, predicted_rects, labeled_rects):
             cv2.rectangle(res, (x, y), (x + w, y + h), color=color, thickness=1)
 
