@@ -2,7 +2,7 @@ from lib_imports import *
 import argparse
 import tensorflow as tf
 from logger import logger
-from fitter import generate_data_unet
+from model_processing.generators import generate_data_unet
 from utils.images_metainfo_cacher import cache_and_get_images_metainfo
 
 parser = argparse.ArgumentParser()
