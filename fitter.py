@@ -1,7 +1,7 @@
 from lib_imports import *
 
 from config import config, unet_config, classifier_config
-from nets import unet, classifier
+from model_processing.nets import unet, classifier
 from model_processing.callbacks import LoggerCallback, SampleSaverCallback
 from model_processing.generators import generate_data_unet, generate_data_classifier
 from utils.filesystem_helper import (
