@@ -1,3 +1,5 @@
+import typing as tp
+
 from lib_imports import *
 
 from utils.platform_based_params import folders_delim, workplace_dir
@@ -10,6 +12,7 @@ class Config:
         default_factory=lambda: ['prepare_samples', 'prepare_trg', 'fit']
     )
     MODEL: str = 'classifier'
+    MODEL_MOCK_PATH: tp.Optional[str] = None
 
     # Names of directories containing data
     SRC_FOLDER_NAME: str = 'src'  # contains train, val, test
