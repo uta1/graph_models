@@ -87,7 +87,6 @@ def _prepare_trg_for_image(image_metainfo):
     )
 
     cv2.imwrite(image_metainfo['bin_file_path'], res)
-    print(res.shape, image_metainfo['bin_file_path'])
 
     return res
 
@@ -99,5 +98,7 @@ def prepare_trg():
         create_path(jsons_folder_path(mode))
 
         images_metainfo = cache_and_get_images_metainfo(mode)
-        for metainfo in images_metainfo.values():
+        total = len(images_metainfo)
+        for ind, metainfo in enumerate(images_metainfo.values()):
             _prepare_trg_for_image(metainfo)
+            print(f'{ind}/{total} images processed for {mode}')
