@@ -12,7 +12,7 @@ from utils.filesystem_helper import (
 )
 from utils.common import repeat_generator, unet_for_classifier
 from utils.cv2_utils import np_image_from_path, np_monobatch_from_path
-from utils.images_metainfo_cacher import cache_and_get_images_metainfo
+from utils.trg_interactor import cache_and_get_images_metainfo
 
 
 def _steps_per_epoch(items, batch_size):
