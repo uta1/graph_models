@@ -5,7 +5,7 @@ from logger import logger
 from model_processing.generators import generate_data_unet, generate_data_classifier
 from model_processing.metrics import ObjectDetectionRate
 from utils.common import unet_for_classifier
-from utils.images_metainfo_cacher import cache_and_get_images_metainfo
+from utils.trg_interactor import cache_and_get_images_metainfo
 
 
 parser = argparse.ArgumentParser()
