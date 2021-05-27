@@ -12,7 +12,6 @@ class Config:
         default_factory=lambda: ['prepare_samples', 'prepare_trg', 'fit']
     )
     MODEL: str = 'classifier'
-    MODEL_MOCK_PATH: tp.Optional[str] = None
 
     # Names of directories containing data
     SRC_FOLDER_NAME: str = 'src'  # contains train, val, test
@@ -57,18 +56,24 @@ config = Config()
 
 
 @dataclasses.dataclass
-class NetworkConfig:
+class NetworkConfigBase:
     NAME: str
     BATCH_SIZE: int
 
 
-unet_config = NetworkConfig(
+@dataclasses.dataclass
+class ClassifierConfig(NetworkConfigBase):
+    UNET_MODEL_PATH: tp.Optional[str]
+
+
+unet_config = NetworkConfigBase(
     NAME='unet',
     BATCH_SIZE=1,
 )
 
 
-classifier_config = NetworkConfig(
+classifier_config = ClassifierConfig(
     NAME='classifier',
     BATCH_SIZE=16,
+    UNET_MODEL_PATH='../unet_weights/001_epoches.chpt',
 )

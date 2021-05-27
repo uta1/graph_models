@@ -36,9 +36,15 @@ def generate_data_unet(images_metainfo):
         yield np.array(batch_x), np.array(batch_y)
 
 
-def generate_data_classifier(images_metainfo, lock, unet_model):
+def generate_data_classifier(
+    images_metainfo,
+    lock,
+    unet_model,
+    batching
+):
     batch_x = []
     batch_y = []
+    anns = []
     for image_metainfo in images_metainfo.values():
         unet_input = np_monobatch_from_path(
             image_metainfo['bin_file_path'],
@@ -50,6 +56,8 @@ def generate_data_classifier(images_metainfo, lock, unet_model):
 
         for ann in image_metainfo['annotations']:
             x, y, w, h = ann['bbox']
+            anns.append(ann['bbox'])
+
             batch_x.append(
                 cv2.resize(
                     unet_output[0, y:y+h, x:x+w, :],
@@ -59,10 +67,16 @@ def generate_data_classifier(images_metainfo, lock, unet_model):
             )
             batch_y.append(ann['category_id'])
 
-            if len(batch_x) == classifier_config.BATCH_SIZE:
+            if batching == 'by_config' and len(batch_x) == classifier_config.BATCH_SIZE:
                 yield np.array(batch_x), np.array(batch_y)
                 batch_x = []
                 batch_y = []
 
-    if len(batch_x) > 0:
+        if batching == 'by_image' and len(batch_x) > 0:
+            yield np.array(batch_x), np.array(batch_y), anns
+            batch_x = []
+            batch_y = []
+            anns = []
+
+    if batching == 'by_config' and len(batch_x) > 0:
         yield np.array(batch_x), np.array(batch_y)

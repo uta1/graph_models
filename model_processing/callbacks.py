@@ -16,14 +16,6 @@ class LoggerCallback(Callback):
 
     def on_epoch_begin(self, epoch, logs={}):
         logger.log('Epoch {} began'.format(epoch), print_timestamp=True)
-    def on_batch_end(self, batch, logs):
-        logger.log(
-            'batch: {} train_loss: {} train_categorical_accuracy: {}'.format(
-                batch,
-                logs.get('loss'),
-                logs.get('sparse_categorical_accuracy')
-            )
-        )
 
     def on_epoch_end(self, epoch, logs={}):
         self.losses.append(logs.get('loss'))

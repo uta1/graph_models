@@ -10,7 +10,7 @@ from utils.filesystem_helper import (
     weights_file_path_template,
     create_unet_samples_folder
 )
-from utils.common import repeat_generator
+from utils.common import repeat_generator, unet_for_classifier
 from utils.cv2_utils import np_image_from_path, np_monobatch_from_path
 from utils.images_metainfo_cacher import cache_and_get_images_metainfo
 
@@ -59,15 +59,11 @@ def _fit_network(
     )
 
 
-def _default_unet_model():
-    return unet(input_size=(*config.TARGET_SIZE, 1 if config.BINARIZE else 3))
-
-
 def _fit_unet(images_metainfo_train, images_metainfo_val):
     _fit_network(
         images_metainfo_train,
         images_metainfo_val,
-        _default_unet_model(),
+        unet(input_size=(*config.TARGET_SIZE, 1 if config.BINARIZE else 3)),
         generate_data_unet,
         (),
         unet_config,
@@ -77,14 +73,14 @@ def _fit_unet(images_metainfo_train, images_metainfo_val):
 
 def _fit_classifier(images_metainfo_train, images_metainfo_val):
     model = classifier(input_size=(*config.IMAGE_ELEM_EMBEDDING_SIZE, ))
-    unet_model = _default_unet_model()
+    unet_model = unet_for_classifier()
     lock = Lock()
     _fit_network(
         images_metainfo_train,
         images_metainfo_val,
         model,
         generate_data_classifier,
-        (lock, unet_model,),
+        (lock, unet_model, 'by_config'),
         classifier_config,
         _len_annotations,
     )

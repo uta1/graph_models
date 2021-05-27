@@ -4,11 +4,11 @@ from config import config, unet_config, classifier_config
 from logger import logger
 
 
-def _model_or_mock(model):
-    return model if config.MODEL_MOCK_PATH is None else load_model(config.MODEL_MOCK_PATH)
+def _model_or_mock(model, chpt_path):
+    return model if chpt_path is None else load_model(chpt_path)
 
 
-def unet(input_size=(256, 256, 1)):
+def unet(input_size=(256, 256, 1), chpt_path=None):
     inputs = Input(input_size)
     conv1 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(inputs)
     conv1 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
@@ -68,10 +68,10 @@ def unet(input_size=(256, 256, 1)):
 
     model.summary(print_fn=lambda x: logger.log(x))
 
-    return _model_or_mock(model)
+    return _model_or_mock(model, chpt_path)
 
 
-def classifier(input_size=(256, 256, 1)):
+def classifier(input_size=(256, 256, 1), chpt_path=None):
     inputs = Input(input_size)
 
     flatten = Flatten()(inputs)
@@ -91,4 +91,4 @@ def classifier(input_size=(256, 256, 1)):
 
     model.summary(print_fn=lambda x: logger.log(x))
 
-    return _model_or_mock(model)
+    return _model_or_mock(model, chpt_path)
