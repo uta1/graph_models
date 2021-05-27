@@ -2,7 +2,7 @@ from lib_imports import *
 import argparse
 import tensorflow as tf
 from logger import logger
-from fitter import generate_data_unet_step
+from model_processing.generators import generate_data_unet
 from utils.images_metainfo_cacher import cache_and_get_images_metainfo
 
 parser = argparse.ArgumentParser()
@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
         metrics_estimator = tf.keras.metrics.MeanIoU(num_classes=6)
         counter = 0
-        for x, y_true in generate_data_unet_step(images_metainfo_val):
+        for x, y_true in generate_data_unet(images_metainfo_val):
             y_pred = np.argmax(model.predict(x), axis=-1)
             metrics_estimator.update_state(y_pred, y_true)
             counter += 1
