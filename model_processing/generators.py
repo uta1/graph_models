@@ -36,15 +36,22 @@ def generate_data_unet(images_metainfo):
         yield np.array(batch_x), np.array(batch_y)
 
 
+def _resize_suboutput(unet_output, x, y, w, h):
+    return cv2.resize(
+        unet_output[0, y:y+h, x:x+w, :],
+        (config.IMAGE_ELEM_EMBEDDING_SIZE[1], config.IMAGE_ELEM_EMBEDDING_SIZE[0]),
+        interpolation=cv2.INTER_NEAREST
+    )
+
+
 def generate_data_classifier(
     images_metainfo,
     lock,
     unet_model,
-    batching
+    strategy
 ):
     batch_x = []
     batch_y = []
-    anns = []
     for image_metainfo in images_metainfo.values():
         unet_input = np_monobatch_from_path(
             image_metainfo['bin_file_path'],
@@ -54,29 +61,23 @@ def generate_data_classifier(
         unet_output = unet_model.predict(unet_input)
         lock.release()
 
-        for ann in image_metainfo['annotations']:
-            x, y, w, h = ann['bbox']
-            anns.append(ann['bbox'])
+        if strategy == 'training':
+            for ann in image_metainfo['annotations']:
+                x, y, w, h = ann['bbox']
 
-            batch_x.append(
-                cv2.resize(
-                    unet_output[0, y:y+h, x:x+w, :],
-                    (config.IMAGE_ELEM_EMBEDDING_SIZE[1], config.IMAGE_ELEM_EMBEDDING_SIZE[0]),
-                    interpolation=cv2.INTER_NEAREST
-                )
-            )
-            batch_y.append(ann['category_id'])
+                batch_x.append(_resize_suboutput(unet_output, x, y, w, h))
+                batch_y.append(ann['category_id'])
 
-            if batching == 'by_config' and len(batch_x) == classifier_config.BATCH_SIZE:
-                yield np.array(batch_x), np.array(batch_y)
-                batch_x = []
-                batch_y = []
+                if len(batch_x) == classifier_config.BATCH_SIZE:
+                    yield np.array(batch_x), np.array(batch_y)
+                    batch_x = []
+                    batch_y = []
 
-        if batching == 'by_image' and len(batch_x) > 0:
-            yield np.array(batch_x), np.array(batch_y), anns
+        if strategy == 'prediction':
+            for x, y, w, h in image_metainfo['rois']:
+                batch_x.append(_resize_suboutput(unet_output, x, y, w, h))
+            yield np.array(batch_x), image_metainfo['annotations'], image_metainfo['rois']
             batch_x = []
-            batch_y = []
-            anns = []
 
-    if batching == 'by_config' and len(batch_x) > 0:
+    if strategy == 'training' and len(batch_x) > 0:
         yield np.array(batch_x), np.array(batch_y)

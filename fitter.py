@@ -80,7 +80,7 @@ def _fit_classifier(images_metainfo_train, images_metainfo_val):
         images_metainfo_val,
         model,
         generate_data_classifier,
-        (lock, unet_model, 'by_config'),
+        (lock, unet_model, 'training'),
         classifier_config,
         _len_annotations,
     )

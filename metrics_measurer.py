@@ -1,6 +1,7 @@
 from lib_imports import *
 import argparse
 import tensorflow as tf
+
 from logger import logger
 from model_processing.generators import generate_data_unet, generate_data_classifier
 from model_processing.metrics import ObjectDetectionRate
@@ -12,20 +13,29 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     '--dir',
     help='what dir load model from',
-    type=str
+    type=str,
+    required=True
 )
 parser.add_argument(
     '--metrics',
     help='name of metrics to calculate',
-    type=str
+    type=str,
+    required=True
+)
+parser.add_argument(
+    '--iou_threshold',
+    help='IoU threshold to make a verdict of object detection',
+    type=float,
+    default=0.5
 )
 
 
 def _process_epoch_internal(model, metrics_estimator, generator):
     counter = 0
     for generated_data in generator:
-        y_pred = np.argmax(model.predict(generated_data[0]), axis=-1)
-        metrics_estimator.update_state(y_pred, *(generated_data[1:]))
+        x, estimator_args = generated_data[0], generated_data[1:]
+        y_pred = np.argmax(model.predict(x), axis=-1)
+        metrics_estimator.update_state(y_pred, *estimator_args)
         counter += 1
         print(epoch_name, str(counter) + '/' + str(len(images_metainfo_val.values())))
     logger.log(epoch_name + ': ' + str(metrics_estimator.result().numpy()))
@@ -42,8 +52,8 @@ def _process_epoch_object_detection_rate(model, images_metainfo_val):
     unet_model = unet_for_classifier()
     lock = Lock()
 
-    metrics_estimator = ObjectDetectionRate()
-    generator = generate_data_classifier(images_metainfo_val, lock, unet_model, 'by_image')
+    metrics_estimator = ObjectDetectionRate(iou_threshold=args.iou_threshold)
+    generator = generate_data_classifier(images_metainfo_val, lock, unet_model, 'prediction')
 
     _process_epoch_internal(model, metrics_estimator, generator)
 
@@ -64,6 +74,7 @@ if __name__ == '__main__':
     images_metainfo_val = cache_and_get_images_metainfo('val')
 
     args = parser.parse_args()
+    logger.log('metrics-measurer args: ' + str(args))
     dir_path = args.dir
     if dir_path[-1] != '/':
         dir_path[-1] += '/'
