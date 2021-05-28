@@ -48,3 +48,21 @@ def get_resizing_coefs(orig_width, orig_height):
         return 1.0, 1.0
 
     return float(config.TARGET_SIZE[1]) / orig_width, float(config.TARGET_SIZE[0]) / orig_height
+
+
+def rects_intersection(rect1, rect2):
+    x1, y1, w1, h1 = rect1
+    x2, y2, w2, h2 = rect2
+
+    left = max(x1, x2)
+    top = min(y1 + h1, y2 + h2)
+    right = min(x1 + w1, x2 + w2)
+    bottom = max(y1, y2)
+
+    width = right - left
+    height = top - bottom
+
+    if width < 0.0 or height < 0.0:
+        return 0.0
+
+    return width * height

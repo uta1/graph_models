@@ -5,7 +5,10 @@ from logger import logger
 
 
 def _model_or_mock(model, chpt_path):
-    return model if chpt_path is None else load_model(chpt_path)
+    if chpt_path is None:
+        model.summary(print_fn=lambda x: logger.log(x))
+        return model
+    return load_model(chpt_path)
 
 
 def unet(input_size=(256, 256, 1), chpt_path=None):
@@ -66,8 +69,6 @@ def unet(input_size=(256, 256, 1), chpt_path=None):
         metrics=['sparse_categorical_accuracy']
     )
 
-    model.summary(print_fn=lambda x: logger.log(x))
-
     return _model_or_mock(model, chpt_path)
 
 
@@ -88,7 +89,5 @@ def classifier(input_size=(256, 256, 1), chpt_path=None):
         loss='sparse_categorical_crossentropy',
         metrics=['sparse_categorical_accuracy']
     )
-
-    model.summary(print_fn=lambda x: logger.log(x))
 
     return _model_or_mock(model, chpt_path)
