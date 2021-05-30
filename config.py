@@ -49,7 +49,7 @@ class Config:
     )
 
     # Learning
-    IMAGE_ELEM_EMBEDDING_SIZE: tuple = (16, 16, 6)
+    ROI_EMBEDDING_SIZE: tuple = (16, 16, 64)
 
 
 config = Config()

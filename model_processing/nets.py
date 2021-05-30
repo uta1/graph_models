@@ -53,11 +53,11 @@ def unet(input_size=(256, 256, 1), chpt_path=None):
         UpSampling2D(size=(2, 2))(conv8))
     merge9 = concatenate([conv1, up9], axis=3)
     conv9 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(merge9)
-    conv9 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
+    conv9 = Conv2D(config.ROI_EMBEDDING_SIZE[-1], 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
     # Original is commented
     # conv9 = Conv2D(2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
     # conv10 = Conv2D(1, 1, activation='sigmoid')(conv9)
-    conv9 = Conv2D(config.IMAGE_ELEM_EMBEDDING_SIZE[-1], 3, activation='softmax', padding='same', kernel_initializer='he_normal')(conv9)
+    conv9 = Conv2D(6, 3, activation='softmax', padding='same', kernel_initializer='he_normal')(conv9)
 
     model = Model(inputs=inputs, outputs=conv9)
 

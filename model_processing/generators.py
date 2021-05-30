@@ -39,7 +39,7 @@ def generate_data_unet(images_metainfo):
 def _resize_suboutput(unet_output, x, y, w, h):
     return cv2.resize(
         unet_output[0, y:y+h, x:x+w, :],
-        (config.IMAGE_ELEM_EMBEDDING_SIZE[1], config.IMAGE_ELEM_EMBEDDING_SIZE[0]),
+        (config.ROI_EMBEDDING_SIZE[1], config.ROI_EMBEDDING_SIZE[0]),
         interpolation=cv2.INTER_NEAREST
     )
 

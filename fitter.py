@@ -72,7 +72,7 @@ def _fit_unet(images_metainfo_train, images_metainfo_val):
 
 
 def _fit_classifier(images_metainfo_train, images_metainfo_val):
-    model = classifier(input_size=(*config.IMAGE_ELEM_EMBEDDING_SIZE, ))
+    model = classifier(input_size=(*config.ROI_EMBEDDING_SIZE,))
     unet_model = unet_for_classifier()
     lock = Lock()
     _fit_network(
