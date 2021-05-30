@@ -1,47 +1,52 @@
 from lib_imports import *
 
 from config import config, unet_config, classifier_config
+from utils.common import unet_for_classifier
 from utils.cv2_utils import np_image_from_path, np_monobatch_from_path
+from utils.geometry import rects_intersection
 
 
 x_to_eval = None
 
+# batch_size is hardcoded to 1
 def generate_data_unet(images_metainfo):
     global x_to_eval
 
-    batch_x = []
-    batch_y = []
     for image_metainfo in images_metainfo.values():
-        batch_x.append(
+        batch_x = [
             np_image_from_path(
                 image_metainfo['bin_file_path'],
                 binarized=config.BINARIZE
             )
-        )
-        batch_y.append(
+        ]
+        batch_y = [
             np_image_from_path(
                 image_metainfo['label_file_path'],
                 binarized=True
             )
-        )
+        ]
 
-        if len(batch_x) == unet_config.BATCH_SIZE:
-            if x_to_eval is None:
-                x_to_eval = np.array(batch_x)
-            yield np.array(batch_x), np.array(batch_y)
-            batch_x = []
-            batch_y = []
-
-    if len(batch_x) > 0:
+        if x_to_eval is None:
+            x_to_eval = np.array(batch_x)
         yield np.array(batch_x), np.array(batch_y)
 
 
-def _resize_suboutput(unet_output, x, y, w, h):
+def _resize_suboutput(unet_output, roi):
+    x, y, w, h = roi
     return cv2.resize(
         unet_output[0, y:y+h, x:x+w, :],
         (config.ROI_EMBEDDING_SIZE[1], config.ROI_EMBEDDING_SIZE[0]),
         interpolation=cv2.INTER_NEAREST
     )
+
+
+def _calc_category_id(roi, anns):
+    for ann in anns:
+        intersection_square = rects_intersection(roi, ann['bbox'])
+        if intersection_square > classifier_config.IOU_DETECTION_THRESHOLD * (roi[-1] * roi[-2]):
+            return ann['category_id']
+
+    return 0
 
 
 def generate_data_classifier(
@@ -50,8 +55,6 @@ def generate_data_classifier(
     unet_model,
     strategy
 ):
-    batch_x = []
-    batch_y = []
     for image_metainfo in images_metainfo.values():
         unet_input = np_monobatch_from_path(
             image_metainfo['bin_file_path'],
@@ -61,23 +64,16 @@ def generate_data_classifier(
         unet_output = unet_model.predict(unet_input)
         lock.release()
 
-        if strategy == 'training':
-            for ann in image_metainfo['annotations']:
-                x, y, w, h = ann['bbox']
+        batch_x = [
+            _resize_suboutput(unet_output, roi)
+            for roi in image_metainfo['rois']
+        ]
 
-                batch_x.append(_resize_suboutput(unet_output, x, y, w, h))
-                batch_y.append(ann['category_id'])
-
-                if len(batch_x) == classifier_config.BATCH_SIZE:
-                    yield np.array(batch_x), np.array(batch_y)
-                    batch_x = []
-                    batch_y = []
-
-        if strategy == 'prediction':
-            for x, y, w, h in image_metainfo['rois']:
-                batch_x.append(_resize_suboutput(unet_output, x, y, w, h))
+        if strategy == 'measure_metrics':
             yield np.array(batch_x), image_metainfo['annotations'], image_metainfo['rois']
-            batch_x = []
-
-    if strategy == 'training' and len(batch_x) > 0:
-        yield np.array(batch_x), np.array(batch_y)
+        if strategy == 'training':
+            batch_y = [
+                _calc_category_id(roi, image_metainfo['annotations'])
+                for roi in image_metainfo['rois']
+            ]
+            yield np.array(batch_x), np.array(batch_y)
