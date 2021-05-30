@@ -15,18 +15,6 @@ from utils.cv2_utils import np_image_from_path, np_monobatch_from_path
 from utils.trg_interactor import cache_and_get_images_metainfo
 
 
-def _steps_per_epoch(items, batch_size):
-    return items / batch_size + \
-           (0 if items % batch_size == 0 else 1)
-
-
-def _len_annotations(images_metainfo):
-    res = 0
-    for image_metainfo in images_metainfo.values():
-        res += len(image_metainfo['annotations'])
-    return res
-
-
 def _fit_network(
     images_metainfo_train,
     images_metainfo_val,
@@ -34,7 +22,6 @@ def _fit_network(
     data_generator_func,
     data_generator_args,
     network_config,
-    data_len_func
 ):
     create_weights_folder(network_config)
 
@@ -52,8 +39,8 @@ def _fit_network(
     model.fit_generator(
         repeat_generator(data_generator_func, (images_metainfo_train, *data_generator_args)),
         validation_data=repeat_generator(data_generator_func, (images_metainfo_val, *data_generator_args)),
-        steps_per_epoch=_steps_per_epoch(data_len_func(images_metainfo_train), network_config.BATCH_SIZE),
-        validation_steps=_steps_per_epoch(data_len_func(images_metainfo_val), network_config.BATCH_SIZE),
+        steps_per_epoch=len(images_metainfo_train),
+        validation_steps=len(images_metainfo_val),
         epochs=3000,
         callbacks=callbacks,
     )
@@ -67,7 +54,6 @@ def _fit_unet(images_metainfo_train, images_metainfo_val):
         generate_data_unet,
         (),
         unet_config,
-        len,
     )
 
 
@@ -82,7 +68,6 @@ def _fit_classifier(images_metainfo_train, images_metainfo_val):
         generate_data_classifier,
         (lock, unet_model, 'training'),
         classifier_config,
-        _len_annotations,
     )
 
 

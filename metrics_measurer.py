@@ -30,7 +30,7 @@ parser.add_argument(
 )
 
 
-def _process_epoch_internal(model, metrics_estimator, generator):
+def _process_epoch_internal(epoch_name, model, metrics_estimator, generator):
     counter = 0
     for generated_data in generator:
         x, estimator_args = generated_data[0], generated_data[1:]
@@ -41,28 +41,33 @@ def _process_epoch_internal(model, metrics_estimator, generator):
     logger.log(epoch_name + ': ' + str(metrics_estimator.result().numpy()))
 
 
-def _process_epoch_mean_iou(model, images_metainfo_val):
+def _process_epoch_mean_iou(epoch_name, model, images_metainfo_val, *args):
     metrics_estimator = tf.keras.metrics.MeanIoU(num_classes=6)
     generator = generate_data_unet(images_metainfo_val)
 
-    _process_epoch_internal(model, metrics_estimator, generator)
+    _process_epoch_internal(epoch_name, model, metrics_estimator, generator)
 
 
-def _process_epoch_object_detection_rate(model, images_metainfo_val):
-    unet_model = unet_for_classifier()
-    lock = Lock()
+def _process_epoch_object_detection_rate(epoch_name, model, images_metainfo_val, process_args, user_args):
+    metrics_estimator = ObjectDetectionRate(iou_threshold=user_args.iou_threshold)
+    generator = generate_data_classifier(images_metainfo_val, *process_args, 'measure_metrics')
 
-    metrics_estimator = ObjectDetectionRate(iou_threshold=args.iou_threshold)
-    generator = generate_data_classifier(images_metainfo_val, lock, unet_model, 'prediction')
-
-    _process_epoch_internal(model, metrics_estimator, generator)
+    _process_epoch_internal(epoch_name, model, metrics_estimator, generator)
 
 
-def _process_epoch(model, images_metainfo_val, args):
+def _process_epoches(images_metainfo_val, process_epoch_impl, process_args, user_args):
+    for epoch_name in sorted(os.listdir(user_args.dir)):
+        model = load_model(dir_path + epoch_name)
+        process_epoch_impl(epoch_name, model, images_metainfo_val, process_args, user_args)
+
+
+def process_params(args):
     if args.metrics == 'mean_iou':
-        _process_epoch_mean_iou(model, images_metainfo_val)
+        return _process_epoch_mean_iou, ()
     if args.metrics == 'object_detection_rate':
-        _process_epoch_object_detection_rate(model, images_metainfo_val)
+        lock = Lock()
+        unet_model = unet_for_classifier()
+        return _process_epoch_object_detection_rate, (lock, unet_model,)
 
 
 if __name__ == '__main__':
@@ -73,11 +78,10 @@ if __name__ == '__main__':
 
     images_metainfo_val = cache_and_get_images_metainfo('val')
 
-    args = parser.parse_args()
-    logger.log('metrics-measurer args: ' + str(args))
-    dir_path = args.dir
+    user_args = parser.parse_args()
+    logger.log('metrics-measurer args: ' + str(user_args))
+    dir_path = user_args.dir
     if dir_path[-1] != '/':
         dir_path[-1] += '/'
-    for epoch_name in sorted(os.listdir(args.dir)):
-        model = load_model(dir_path + epoch_name)
-        _process_epoch(model, images_metainfo_val, args)
+    process_epoch_impl, process_args = process_params(user_args)
+    _process_epoches(images_metainfo_val, process_epoch_impl, process_args, user_args)

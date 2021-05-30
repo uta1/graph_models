@@ -9,7 +9,7 @@ from utils.platform_based_params import folders_delim, workplace_dir
 class Config:
     # Main
     MODULES: list = dataclasses.field(
-        default_factory=lambda: ['prepare_samples', 'prepare_trg', 'fit']
+        default_factory=lambda: ['prepare_trg', 'fit']
     )
     MODEL: str = 'classifier'
 
@@ -58,22 +58,26 @@ config = Config()
 @dataclasses.dataclass
 class NetworkConfigBase:
     NAME: str
-    BATCH_SIZE: int
+
+
+@dataclasses.dataclass
+class UnetConfig(NetworkConfigBase):
+    pass
 
 
 @dataclasses.dataclass
 class ClassifierConfig(NetworkConfigBase):
     UNET_MODEL_PATH: tp.Optional[str]
+    IOU_DETECTION_THRESHOLD: float
 
 
-unet_config = NetworkConfigBase(
+unet_config = UnetConfig(
     NAME='unet',
-    BATCH_SIZE=1,
 )
 
 
 classifier_config = ClassifierConfig(
     NAME='classifier',
-    BATCH_SIZE=16,
     UNET_MODEL_PATH='../unet_weights/001_epoches.chpt',
+    IOU_DETECTION_THRESHOLD=0.5,
 )
